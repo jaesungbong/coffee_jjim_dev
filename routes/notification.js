@@ -3,7 +3,7 @@ var router = express.Router();
 var fcm = require('node-gcm');
 
 //견적 요청을 점주에게 전달
-// DB 작업 : 견적서 상태를 경매 진행으로 바꿈
+// DB 작업 : 견적서 상태를 경매 진행으로 바꿈, 경매 시작 날짜, 시각을 지정해 줌.
 router.post('/estimate', function(req, res, next) {
     var estimateId = req.body.estimateId;
     res.send({
@@ -22,6 +22,13 @@ router.post('/auctionend', function(req, res, next) {
 
 // 고객이 예약을 완료하면 점주에게 알람
 router.post('/reservation', function(req, res, next) {
+    var proposalId = req.body.proposalId;
+    res.send({
+        proposalId : proposalId
+    })
+});
+
+router.post('/proposal', function(req, res, next) {
     var proposalId = req.body.proposalId;
     res.send({
         proposalId : proposalId

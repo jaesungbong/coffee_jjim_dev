@@ -10,6 +10,9 @@ var redis = require('redis');
 var redisClient = redis.createClient();
 var redisStore = require('connect-redis')(session);
 
+var setting = require('./routes/setting');
+var notice = require('./routes/notice');
+var customer = require('./routes/customer');
 var bookmark = require('./routes/bookmark');
 var estimate = require('./routes/estimate');
 var event = require('./routes/event');
@@ -19,6 +22,7 @@ var proposal = require('./routes/proposal');
 var notification = require('./routes/notification');
 var app = express();
 
+app.set('env', 'development');
 // view engine setup
 app.set('views', path.join(__dirname, 'views'));
 app.set('view engine', 'jade');
@@ -50,6 +54,9 @@ app.use('/proposals', proposal);
 app.use('/estimates', estimate);
 app.use('/notifications', notification);
 app.use('/bookmarks', bookmark);
+app.use('/customers', customer);
+app.use('/notices', notice);
+app.use('/settings', setting);
 
 // app.use('/', routes);
 // app.use('/users', users);

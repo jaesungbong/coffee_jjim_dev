@@ -3,16 +3,44 @@ var url = require('url');
 var router = express.Router();
 var isSecure = require('./common').isSecure;
 
+router.post('/', isSecure, function(req, res, next) {
+    var data = {};
+    data.ownerName = req.body.ownerName;
+    data.ownerLoginId = req.body.ownerLoginId;
+    data.password = req.body.password;
+    data.ownerPhoneNumber = req.body.ownerPhoneNumber;
+    data.ownerEmail = req.body.ownerEmail;
+    data.cafeName = req.body.cafeName;
+    data.cafeAddress = req.body.cafeAddress;
+    data.latitude = req.body.latitude;
+    data.longitude = req.body.longitude;
+    data.cafePhoneNumber = req.body.cafePhoneNumber;
+    res.send({
+        message : data
+    });
+});
+
 // 모든 카페 보기
 router.get('/', isSecure, function(req, res, next) {
-    if(req.url.match(/\/?pageNo=\d+&rowCount=\d+&latitude=\d+&longitude=\d+/i)) {
-        var pageNo = parseInt(req.query.pageNo);
-        var rowCount = parseInt(req.query.rowCount);
-        var latitude = parseInt(req.query.latitude);
-        var longitude = parseInt(req.query.longitude);
-
+    // 검색 카페 보기
+    if(req.query.keyword && req.query.pageNo && req.query.rowCount){
         res.send({
-            currentPage : 1,
+            currentPage : req.query.pageNo,
+            search : req.query.keyword,
+            cafes : [{
+                cafeId : 1,
+                cafeName : "MY COFFEE",
+                cafeAddress : "서울시 강남구 역삼동",
+                cafeImageUrl : "http://host/../uploads/images/cafes/1.jpg",
+                distance : 500,
+                options : { wifi : true, days : true, parking : true, socket : true },
+                latitude : "37.15646",
+                longitude : "127.51646"
+            }]
+        });
+    } else if (req.query.pageNo && req.query.rowCount) { //주변 카페 보기
+        res.send({
+            currentPage : req.query.pageNo,
             cafes : [{
                 cafeId : 1,
                 cafeName : "MY COFFEE",
@@ -74,6 +102,48 @@ router.get('/:cafeId', isSecure, function(req, res, next) {
     })
 });
 
+//점주용
+//자기 카페 보기
+router.get('/me', isSecure, function(req, res, next) {
+   res.send({
+        cafeName : "My Coffee",
+        cafeAdress : "서울시 강남구 역삼동",
+        phoneNumber : "02-2846-4861",
+        details : "우리 카페는 고급스러운 카페입니다.",
+        businessHour : "09:00 ~ 21:00",
+        options : { wifi : true, days : true, parking : true, socket : true },
+        cafeImageUrl : [ "http://host/../uploads/images/cafes/1.jpg",
+            "http://host/../uploads/images/cafes/2.jpg",
+            "http://host/../uploads/images/cafes/3.jpg",
+            "http://host/../uploads/images/cafes/4.jpg",
+            "http://host/../uploads/images/cafes/5.jpg" ],
+        distance : 500,
+        latitude : 37.546846,
+        longitude : 127.153458,
+        menuImageUrl : "http://host/../uploads/images/menus/5.jpg"
+   });
+});
+
+//점주용
+//카페 정보 편집
+router.put('/me', isSecure, function(req, res, next) {
+    var cafeName = req.body.cafeName;
+    var cafeAddress = req.body.address;
+    var cafePhoneNumber = req.body.cafePhoneNumber;
+    var businessHour = req.body.businessHour;
+    var options = req.body.options;
+
+    res.send({
+        message : "편집완료"
+    })
+});
+
+//점주용
+router.post('/duplication', isSecure, function(req, res, next) {
+    res.send({
+        message : req.body.ownerLoginId
+    })
+});
 
 
 
