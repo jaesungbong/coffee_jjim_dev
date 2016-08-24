@@ -8,5 +8,4 @@ router.put('/', isSecure, function(req, res, next) {
         auctionRange : auctionRange
     });
 });
-
 module.exports = router;
