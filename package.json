@@ -19,6 +19,7 @@
     "mysql": "^2.11.1",
     "node-gcm": "^0.14.4",
     "passport": "^0.3.2",
+    "passport-facebook-token": "^3.3.0",
     "passport-kakao": "0.0.4",
     "passport-local": "^1.0.0",
     "redis": "^2.6.2",
