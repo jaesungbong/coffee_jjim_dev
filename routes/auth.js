@@ -61,7 +61,7 @@ router.post('/local/login', isSecure, function(req, res, next) {
         }
         if (!user) {
             return res.status(401).send({
-                message: 'Login failed!!!'
+                message: '로그인 실패'
             });
         }
         req.login(user, function(err) {
@@ -72,22 +72,18 @@ router.post('/local/login', isSecure, function(req, res, next) {
         });
     })(req, res, next);
 }, function(req, res, next) {
-    var user = {};
-    user.ownerLoginId = req.user.ownerLoginId;
-    user.name = req.user.name;
     res.send({
-        message: 'local login',
-        user: user
+        message: 'login ok'
     });
 });
 
 router.get('/local/logout', isSecure, function(req, res, next) {
     req.logout();
-    res.send({ message: 'local logout' });
+    res.send({ message: '로그아웃!' });
 });
 
 router.post('/facebook/token', isSecure, passport.authenticate('facebook-token', {scope : ['email']}), function(req, res, next) {
-    res.send(req.user? '성공' : '실패');
+    res.send(req.user? '페이스북 로그인' : '실패');
 });
 
 module.exports = router;

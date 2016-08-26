@@ -2,21 +2,28 @@ var express = require('express');
 var url = require('url');
 var router = express.Router();
 var isSecure = require('./common').isSecure;
+var Cafe = require('../models/cafe');
 
+//점주 회원 가입
 router.post('/', isSecure, function(req, res, next) {
-    var data = {};
-    data.ownerName = req.body.ownerName;
-    data.ownerLoginId = req.body.ownerLoginId;
-    data.password = req.body.password;
-    data.ownerPhoneNumber = req.body.ownerPhoneNumber;
-    data.ownerEmail = req.body.ownerEmail;
-    data.cafeName = req.body.cafeName;
-    data.cafeAddress = req.body.cafeAddress;
-    data.latitude = req.body.latitude;
-    data.longitude = req.body.longitude;
-    data.cafePhoneNumber = req.body.cafePhoneNumber;
-    res.send({
-        message : data
+    var cafeData = {};
+    cafeData.ownerName = req.body.ownerName;
+    cafeData.ownerLoginId = req.body.ownerLoginId;
+    cafeData.password = req.body.password;
+    cafeData.ownerPhoneNumber = req.body.ownerPhoneNumber;
+    cafeData.ownerEmail = req.body.ownerEmail;
+    cafeData.cafeName = req.body.cafeName;
+    cafeData.cafeAddress = req.body.cafeAddress;
+    cafeData.latitude = req.body.latitude;
+    cafeData.longitude = req.body.longitude;
+    cafeData.cafePhoneNumber = req.body.cafePhoneNumber;
+    Cafe.registerCafe(cafeData, function (err, result) {
+        if (err) {
+            return next(err);
+        }
+        res.send({
+            message : '회원 가입!'
+        });
     });
 });
 
@@ -140,9 +147,14 @@ router.put('/me', isSecure, function(req, res, next) {
 
 //점주용
 router.post('/duplication', isSecure, function(req, res, next) {
-    res.send({
-        message : req.body.ownerLoginId
-    })
+    Cafe.checkId(req.body.ownerLoginId, function(err, result) {
+        if (err) {
+            return next(err)
+        }
+        res.send({
+            message: result
+        });
+    });
 });
 
 
