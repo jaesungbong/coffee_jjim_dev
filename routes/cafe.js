@@ -3,6 +3,7 @@ var url = require('url');
 var router = express.Router();
 var isSecure = require('./common').isSecure;
 var Cafe = require('../models/cafe');
+var formidable = require('formidable');
 
 //점주 회원 가입
 router.post('/', isSecure, function(req, res, next) {

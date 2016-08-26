@@ -4,7 +4,7 @@ var dbPool = require('../models/common').dbPool;
 
 var CafeObj = {
     findByOwnerLoginId : function(ownerLoginId, callback) {
-        var sql_select_cafe = 'SELECT id, user_id, owner_login_id, password, owner_name, owner_phone_number, owner_email, cafe_name, cafe_phone_number, cafe_address, weekday_business_hour, weekend_business_hour, latitude, longitude, auction_range, enrolled_date, menu_image, wifi, days, parking, socket FROM cafe ' +
+        var sql_select_cafe = 'SELECT id, user_id, owner_login_id, password, owner_name, owner_phone_number, owner_email, cafe_name, cafe_phone_number, cafe_address, weekday_business_hour, weekend_business_hour, location, auction_range, enrolled_date, menu_image, wifi, days, parking, socket FROM cafe ' +
             'WHERE owner_login_id = ? ';
         dbPool.getConnection(function(err, dbConn) {
             if (err) {
@@ -52,9 +52,8 @@ var CafeObj = {
                                                 'cafe_name, ' +
                                                 'cafe_phone_number, ' +
                                                 'cafe_address, ' +
-                                                'latitude, ' +
-                                                'longitude) ' +
-                              'VALUES(?, ?, SHA2(?, 512), ?, ?, ?, ?, ?, ?, ?, ?)';
+                                                'location) ' +
+                              'VALUES(?, ?, SHA2(?, 512), ?, ?, ?, ?, ?, ?, point(?, ?))';
         dbPool.getConnection(function(err, dbConn) {
             if (err) {
                 return callback(err);

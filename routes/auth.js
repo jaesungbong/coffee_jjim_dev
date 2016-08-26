@@ -7,6 +7,7 @@ var Cafe = require('../models/cafe');
 var User = require('../models/user');
 var Customer = require('../models/customer');
 var isSecure = require('./common').isSecure;
+var KakaoStrategy = require('passport-kakao').Strategy;
 
 
 passport.use(new LocalStrategy({usernameField: 'ownerLoginId', passwordField: 'password'}, function(ownerLoginId, password, done) {
@@ -28,6 +29,7 @@ passport.use(new LocalStrategy({usernameField: 'ownerLoginId', passwordField: 'p
         })
     })
 }));
+
 
 passport.use(new FacebookTokenStrategy({
     clientID: process.env.FACEBOOK_APP_ID,

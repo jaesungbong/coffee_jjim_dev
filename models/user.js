@@ -17,8 +17,7 @@ var UserObj = {
                          'c.cafe_address, ' +
                          'c.weekday_business_hour, ' +
                          'c.weekend_business_hour, ' +
-                         'c.latitude, ' +
-                         'c.longitude, ' +
+                         'c.location, ' +
                          'c.auction_range, ' +
                          'c.enrolled_date, ' +
                          'c.menu_image, ' +
@@ -59,8 +58,7 @@ var UserObj = {
                     user.cafeAddress = result[0].cafe_address;
                     user.weekdayBusinessHour = result[0].weekday_business_hour;
                     user.weekendBusinessHour = result[0].weekend_business_hour;
-                    user.latitude = result[0].latitude;
-                    user.longitude = result[0].longitude;
+                    user.location = result[0].location;
                     user.auctionRange = result[0].auction_range;
                     user.enrolled_date = result[0].enrolled_date;
                     user.menuImage = result[0].menu_image;
