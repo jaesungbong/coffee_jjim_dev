@@ -19,8 +19,6 @@ var UserObj = {
                          'c.weekend_business_hour, ' +
                          'c.location, ' +
                          'c.auction_range, ' +
-                         'c.enrolled_date, ' +
-                         'c.menu_image, ' +
                          'c.wifi, ' +
                          'c.days, ' +
                          'c.parking, ' +
@@ -36,7 +34,6 @@ var UserObj = {
                 if (err) {
                     return callback(err);
                 }
-                console.log(result[0]);
                 if (result[0].type === 0) { //고객
                     // var user = {};
                     // user.id = result[0].id;
@@ -60,8 +57,6 @@ var UserObj = {
                     user.weekendBusinessHour = result[0].weekend_business_hour;
                     user.location = result[0].location;
                     user.auctionRange = result[0].auction_range;
-                    user.enrolled_date = result[0].enrolled_date;
-                    user.menuImage = result[0].menu_image;
                     user.wifi = result[0].wifi;
                     user.days = result[0].days;
                     user.parking = result[0].parking;

@@ -46,7 +46,8 @@ app.use(session({
 app.use(passport.initialize());
 app.use(passport.session());
 app.use(express.static(path.join(__dirname, 'public')));
-app.use('/images', express.static(path.join(__dirname, 'images/cafes')));
+app.use('/cafeimages', express.static(path.join(__dirname, 'images/cafes')));
+app.use('/eventimages', express.static(path.join(__dirname, 'images/events')));
 
 app.use('/auth', auth);
 app.use('/cafes', cafe);
