@@ -56,7 +56,7 @@ passport.deserializeUser(function(id, done) {
     });
 });
 
-router.post('/local/login', function(req, res, next) {
+router.post('/local/login', isSecure, function(req, res, next) {
     passport.authenticate('local', function(err, user) {
         if (err) {
             return next(err);

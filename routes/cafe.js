@@ -10,7 +10,7 @@ var async = require('async');
 var fs = require('fs');
 
 //점주 회원 가입
-router.post('/', function(req, res, next) {
+router.post('/', isSecure, function(req, res, next) {
     var reqData = {};
     reqData.ownerName = req.body.ownerName || 'ownerName' ;
     reqData.ownerLoginId = req.body.ownerLoginId || 'ownerLoginId';
