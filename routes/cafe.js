@@ -73,6 +73,19 @@ router.get('/', isSecure, isAuthenticated, function(req, res, next) {
     }
 });
 
+//ID 중복확인
+router.get('/checkid', function(req, res, next) {
+    var id = req.query.ownerLoginId || 0 ;
+    Cafe.checkId(id, function(err, result) {
+        if (err) {
+            return next(err)
+        }
+        res.send({
+            message: result
+        });
+    });
+});
+
 // 베스트 카페 목록5개 조회
 router.get('/best5', isSecure, isAuthenticated, function(req, res, next) {
     Cafe.getBest5Cafe(function (err, results) {
@@ -167,18 +180,7 @@ router.put('/me', isSecure, isAuthenticated, function(req, res, next) {
     }
 });
 
-//ID 중복확인
-router.post('/checkid', function(req, res, next) {
-    var id = req.body.ownerLoginId || 0 ;
-    Cafe.checkId(id, function(err, result) {
-        if (err) {
-            return next(err)
-        }
-        res.send({
-            message: result
-        });
-    });
-});
+
 
 
 module.exports = router;
