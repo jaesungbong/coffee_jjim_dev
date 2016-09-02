@@ -32,15 +32,14 @@ var CafeObj = {
                     return callback(null, null);
                 }
                 dbConn.query(sql_select_user, [ownerLoginId], function(err, user) {
-                   if (err) {
-                       dbConn.release();
+                    dbConn.release();
+                    if (err) {
                        return callback(err);
-                   }
-                   if (user.length === 0) {
-                       dbConn.release();
+                    }
+                    if (user.length === 0) {
                        return callback(null, null);
-                   }
-                   //콜백으로 password 와 user 정보를 넘겨줌
+                    }
+                    //콜백으로 password 와 user 정보를 넘겨줌
                     callback(null, password[0].password, user[0]);
                 });
             })
@@ -102,7 +101,6 @@ var CafeObj = {
 
         dbPool.getConnection(function(err, dbConn) {
             if (err) {
-                dbConn.release();
                 return callback(err);
             } else {
                 dbConn.beginTransaction(function (err) {
@@ -167,7 +165,6 @@ var CafeObj = {
                 return callback(err);
             }
             dbConn.query(sql_select_cafe, [id], function(err, result) {
-                console.log(result);
                 dbConn.release();
                 if (err) {
                     return callback(err);
