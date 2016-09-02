@@ -74,6 +74,7 @@ var CafeObj = {
                 return callback(err);
             }
             dbConn.query(sql_update_token, [loginData.fcmToken, loginData.ownerLoginId], function(err, result) {
+                dbConn.release();
                 if (err) {
                     return callback(err);
                 }

@@ -18,11 +18,10 @@ var UserObj = {
 
         dbPool.getConnection(function (err, dbConn) {
             if (err) {
+                dbConn.release();
                 return callback(err);
             }
             dbConn.query(sql_find_user, [id], function (err, result) {
-                console.log(result);
-                console.log(result);
                 if (err) {
                     dbConn.release();
                     return callback(err);
