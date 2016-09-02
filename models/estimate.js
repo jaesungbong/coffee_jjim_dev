@@ -12,7 +12,7 @@ var estimateObj = {
 
         // 견적서 작성하기
         var sql_insert_estimate = 'INSERT INTO estimate(customer_id, people, auction_time, reservation_time, wifi, days, parking, socket, location) ' +
-            'VALUES (?, ?, ?, convert_tz(str_to_date(?, \'%Y-%m-%d %H:%i:%s\'), \'+00:00\',\'-09:00\'), ?, ?, ?, ?, point(?, ?))';
+                                  'VALUES (?, ?, ?, convert_tz(str_to_date(?, \'%Y-%m-%d %H:%i:%s\'), \'+00:00\',\'-09:00\'), ?, ?, ?, ?, point(?, ?))';
 
 
         // 견적서의 조건에 맞는 카페 목록 조회
@@ -196,7 +196,7 @@ var estimateObj = {
                                                      'JOIN customer c ON(e.customer_id = c.id) ' +
                                      'WHERE cafe_id = ?) a LEFT JOIN (SELECT estimate_id ,proposal_state ' +
                                                                      'FROM proposal ' +
-                                'WHERE proposal_state = 0 OR proposal_state IS NULL) b ON (a.estimateId = b.estimate_id) ' +
+                                                                     'WHERE proposal_state = 0 OR proposal_state IS NULL) b ON (a.estimateId = b.estimate_id) ' +
                                 'LIMIT ?, ?';
 
         dbPool.getConnection(function(err, dbConn) {
@@ -208,6 +208,9 @@ var estimateObj = {
                 dbConn.release();
                 if (err) {
                     return callback(err);
+                }
+                for(var i = 0; i < results.length; i ++){
+                    results[i].proposalState = -1;
                 }
                 callback(null, results);
             });

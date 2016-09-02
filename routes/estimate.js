@@ -90,9 +90,9 @@ router.post('/', isSecure, isAuthenticated, function(req, res, next) {
 // 자신에게 들어온 견적 목록 보기
 router.get('/', isSecure, isAuthenticated, function(req, res, next) {
     var reqData = {};
-    reqData.cafeId = req.user.id || 0;
-    reqData.pageNo = req.query.pageNo || 1;
-    reqData.rowCount = req.query.rowCount || 10;
+    reqData.cafeId = parseInt(req.user.id || 0);
+    reqData.pageNo = parseInt(req.query.pageNo || 1);
+    reqData.rowCount = parseInt(req.query.rowCount || 10);
     Estimate.getEstimateList(reqData, function(err, results) {
         if (err) {
             return next(err);

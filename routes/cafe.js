@@ -83,22 +83,6 @@ router.get('/best5', isSecure, isAuthenticated, function(req, res, next) {
     });
 });
 
-//즐겨 찾기 카페 목록 조회
-router.get('/bookmark', isSecure, isAuthenticated, function(req, res, next) {
-    if(req.url.match(/\/?pageNo=\d+&rowCount=\d+/i)) {
-        var reqData = {};
-        reqData.customerId = 1;
-        reqData.pageNo = parseInt(req.query.pageNo) || 1;
-        reqData.rowCount = parseInt(req.query.rowCount) || 10;
-        Cafe.getBookmarkCafe(reqData, function(err, result) {
-            res.send({
-                message : "즐겨 찾기 카페 입니다.",
-                data : result,
-                currentPage: reqData.pageNo
-            });
-        });
-    }
-});
 
 // 새로운 카페 목록 5개 조회
 router.get('/new5', isSecure, isAuthenticated, function(req, res, next) {
