@@ -1,9 +1,10 @@
 var express = require('express');
 var router = express.Router();
 var isSecure = require('./common').isSecure;
+var isAuthenticated = require('./common').isAuthenticated;
 
 //휴대폰 번호 등록
-router.put('/', isSecure, function(req, res, next) {
+router.put('/', isSecure, isAuthenticated, function(req, res, next) {
     var customerPhoneNumber = req.body.customerPhoneNumber;
     res.send({
         customerPhoneNumber : customerPhoneNumber
@@ -12,7 +13,7 @@ router.put('/', isSecure, function(req, res, next) {
 
 
 // 예약한 고객 정보 보기
-router.get('/:customerId', isSecure, function(req, res, next) {
+router.get('/:customerId', isSecure, isAuthenticated, function(req, res, next) {
     var customerId = req.params.customerId;
     res.send({
         customerNickName : "userA",

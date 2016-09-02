@@ -19,7 +19,7 @@ var event = require('./routes/event');
 var cafe = require('./routes/cafe');
 var auth = require('./routes/auth');
 var proposal = require('./routes/proposal');
-var notification = require('./routes/notification');
+var image = require('./routes/image');
 var app = express();
 
 app.set('env', 'development');
@@ -54,11 +54,11 @@ app.use('/cafes', cafe);
 app.use('/events', event);
 app.use('/proposals', proposal);
 app.use('/estimates', estimate);
-app.use('/notifications', notification);
 app.use('/bookmarks', bookmark);
 app.use('/customers', customer);
 app.use('/notices', notice);
 app.use('/settings', setting);
+app.use('/images', image);
 
 // app.use('/', routes);
 // app.use('/users', users);

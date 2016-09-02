@@ -9,23 +9,23 @@ var Customer = require('../models/customer');
 var isSecure = require('./common').isSecure;
 var KakaoStrategy = require('passport-kakao').Strategy;
 
-
+// 카페 로그인 strategy
 passport.use(new LocalStrategy({usernameField: 'ownerLoginId', passwordField: 'password'}, function(ownerLoginId, password, done) {
-    Cafe.findByOwnerLoginId(ownerLoginId, function(err, owner) {
+    Cafe.findByOwnerLoginId(ownerLoginId, function(err, cafePassword, user) {
         if (err) {
             return done(err);
         }
-        if (!owner) {
+        if (!cafePassword) {
             return done(null, false);
         }
-        Cafe.verifyPassword(password, owner.password, function(err, result) {
+        Cafe.verifyPassword(password, cafePassword, function(err, result) {
             if (err) {
                 return done(err);
             }
             if (!result) {
                 return done(null, false);
             }
-            done(null, owner);
+            done(null, user);
         })
     })
 }));
@@ -56,7 +56,7 @@ passport.deserializeUser(function(id, done) {
     });
 });
 
-router.post('/local/login', isSecure, function(req, res, next) {
+router.post('/local/login', function(req, res, next) {
     passport.authenticate('local', function(err, user) {
         if (err) {
             return next(err);
@@ -74,8 +74,16 @@ router.post('/local/login', isSecure, function(req, res, next) {
         });
     })(req, res, next);
 }, function(req, res, next) {
-    res.send({
-        message: 'login ok'
+    var reqData = {};
+    reqData.fcmToken = req.body.fcmToken;
+    reqData.ownerLoginId = req.body.ownerLoginId;
+    Cafe.updateFcmToken(reqData, function(err, result) {
+        if (err) {
+            return next(err);
+        }
+        res.send({
+            message: '로그인 OK!'
+        });
     });
 });
 

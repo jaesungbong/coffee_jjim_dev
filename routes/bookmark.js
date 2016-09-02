@@ -1,37 +1,36 @@
 var express = require('express');
 var router = express.Router();
 var isSecure = require('./common').isSecure;
-
-// 즐겨찾기 조회
-router.get('/', isSecure, function(req, res, next) {
-    if(req.url.match(/\/?pageNo=\d+&rowCount=\d+/i)) {
-        res.send({
-            bookMarkCafes: [{
-                cafeId : 1,
-                cafeName : "every cafe",
-                cafeImageUrl : "http://host/../images/cafes/1.jpg",
-                cafeAddress : "서울시 강남구 역삼동" ,
-                distance : 800,
-                options : { wifi : true, days : true, parking : true, socket : true }
-            }],
-            currentPage: 1
-        });
-    }
-});
+var isAuthenticated = require('./common').isAuthenticated;
+var Bookmark = require('../models/bookmark');
 
 // 즐겨찾기 하기
 router.post('/', isSecure, function(req, res, next) {
-    var estimateId = req.body.estimateId;
-    res.send({
-        message : "즐겨찾기 완료"
-    })
+    var reqData = {};
+    reqData.customerId = 1;
+    reqData.cafeId = req.body.cafeId || 0;
+    Bookmark.addCafe(reqData, function(err, result) {
+        if (err) {
+            return next(err);
+        }
+        res.send({
+            message : "즐겨찾기 추가"
+        })
+    });
 });
 
 // 즐겨찾기 카페 삭제
-router.delete('/:cafeId', isSecure, function(req, res, next) {
-   var cafeId = req.params.cafeId;
-    res.send({
-        message : "제거 완료"
+router.delete('/:cafeId', isAuthenticated, isSecure, function(req, res, next) {
+    var reqData = {};
+    reqData.customerId = 1;
+    reqData.cafeId = req.params.cafeId;
+    Bookmark.deleteCafe(reqData, function(err, result) {
+        if (err) {
+            return next(err);
+        }
+        res.send({
+            message : "즐겨찾기 제거"
+        })
     });
 });
 

@@ -7,39 +7,44 @@ var Cafe = require('../models/cafe');
 var formidable = require('formidable');
 var path = require('path');
 var async = require('async');
+var fs = require('fs');
 
 //점주 회원 가입
-router.post('/', isSecure, function(req, res, next) {
-    var cafeData = {};
-    if(!(req.body.ownerName && req.body.ownerLoginId && req.body.password && req.body.ownerPhoneNumber && req.body.ownerEmail && req.body.cafeName && req.body.cafeAddress && req.body.latitude && req.body.longitude && req.body.cafePhoneNumber)) {
-        return next(new Error('정보를 모두 입력하세요.'))
-    } else {
-        cafeData.ownerName = req.body.ownerName;
-        cafeData.ownerLoginId = req.body.ownerLoginId;
-        cafeData.password = req.body.password;
-        cafeData.ownerPhoneNumber = req.body.ownerPhoneNumber;
-        cafeData.ownerEmail = req.body.ownerEmail;
-        cafeData.cafeName = req.body.cafeName;
-        cafeData.cafeAddress = req.body.cafeAddress;
-        cafeData.latitude = parseFloat(req.body.latitude);
-        cafeData.longitude = parseFloat(req.body.longitude);
-        cafeData.cafePhoneNumber = req.body.cafePhoneNumber;
-        Cafe.registerCafe(cafeData, function (err, result) {
-            if (err) {
-                return next(err);
-            }
-            res.send({
-                message: '회원 가입!'
-            });
+router.post('/', function(req, res, next) {
+    var reqData = {};
+    reqData.ownerName = req.body.ownerName || 'ownerName' ;
+    reqData.ownerLoginId = req.body.ownerLoginId || 'ownerLoginId';
+    reqData.password = req.body.password || '1111' ;
+    reqData.ownerPhoneNumber = req.body.ownerPhoneNumber || '010-0000-0000' ;
+    reqData.ownerEmail = req.body.ownerEmail || 'email@email.com';
+    reqData.cafeName = req.body.cafeName || 'cafeName' ;
+    reqData.cafeAddress = req.body.cafeAddress || 'cafeAddress' ;
+    reqData.latitude = parseFloat(req.body.latitude || 37.552788)  ;
+    reqData.longitude = parseFloat(req.body.longitude || 126.981328);
+    reqData.cafePhoneNumber = req.body.cafePhoneNumber || '010-1234-4567';
+    reqData.fcmToken = req.body.fcmToken || '1111' ;
+    Cafe.registerCafe(reqData, function (err, result) {
+        if (err) {
+            return next(err);
+        }
+        res.send({
+            message: '회원 가입!'
         });
-    }
+    });
 });
 
 // 카페 보기
-router.get('/', isSecure, function(req, res, next) {
-    // 검색 카페 보기
-    if(req.query.keyword && req.query.pageNo && req.query.rowCount && req.query.latitude && req.query.longitude){
-        Cafe.getKeyWordCafe(req.query.keyword, parseInt(req.query.pageNo), parseInt(req.query.rowCount), parseFloat(req.query.latitude), parseFloat(req.query.longitude), function(err, results) {
+router.get('/', isSecure, isAuthenticated, function(req, res, next) {
+    var keyword = req.query.keyword;
+    var reqData = {};
+    // 키워드가 있을 경우 검색 카페 보기
+    if (keyword) {
+        reqData.keyword = keyword;
+        reqData.pageNo = parseInt(req.query.pageNo || 1);
+        reqData.rowCount = parseInt(req.query.rowCount || 10);
+        reqData.latitude = parseFloat(req.query.latitude);
+        reqData.longitude = parseFloat(req.query.longitude);
+        Cafe.getKeyWordCafe(reqData, function(err, results) {
             if (err) {
                 return next(err);
             }
@@ -49,10 +54,15 @@ router.get('/', isSecure, function(req, res, next) {
                 currentPage : req.query.pageNo
             });
         });
-    } else if (req.query.pageNo && req.query.rowCount && req.query.latitude && req.query.longitude) { //모든 카페 보기
-        Cafe.getAllCafe(parseInt(req.query.pageNo), parseInt(req.query.rowCount), parseFloat(req.query.latitude), parseFloat(req.query.longitude), function(err, results) {
+    // 키워드가 없을 경우 주변 모든 카페 보기
+    } else {
+        reqData.pageNo = parseInt(req.query.pageNo || 1);
+        reqData.rowCount = parseInt(req.query.rowCount || 10);
+        reqData.latitude = parseFloat(req.query.latitude);
+        reqData.longitude = parseFloat(req.query.longitude);
+        Cafe.getAllCafe(reqData, function(err, results) {
             if (err) {
-               return next(err);
+                return next(err);
             }
             res.send({
                 message : '모든 카페 입니다.',
@@ -60,13 +70,11 @@ router.get('/', isSecure, function(req, res, next) {
                 currentPage : req.query.pageNo
             });
         });
-    } else {
-        return next(new Error('키워드 혹은 위도 경도를 지정해 주세요.'));
     }
 });
 
-// 베스트 카페 목록5개 조회, GET /cafes/best5
-router.get('/best5', isSecure, function(req, res, next) {
+// 베스트 카페 목록5개 조회
+router.get('/best5', isSecure, isAuthenticated, function(req, res, next) {
     Cafe.getBest5Cafe(function (err, results) {
         res.send({
             message : 'best5 카페 입니다.',
@@ -75,18 +83,34 @@ router.get('/best5', isSecure, function(req, res, next) {
     });
 });
 
-// 새로운 카페 목록 5개 조회, GET /cafes/new5
-router.get('/new5', isSecure, function(req, res, next) {
-    res.send([
-        { cafeId : 1, cafeImageUrl : "https://127.0.0.1/../images/cafes/2.jpg"},
-        { cafeId : 2, cafeImageUrl : "https://127.0.0.1/../images/cafes/2.jpg"},
-        { cafeId : 3, cafeImageUrl : "https://127.0.0.1/../images/cafes/3.jpg"},
-        { cafeId : 4, cafeImageUrl : "https://127.0.0.1/../images/cafes/4.jpg"},
-        { cafeId : 5, cafeImageUrl : "https://127.0.0.1/../images/cafes/5.jpg"},
-    ]);
+//즐겨 찾기 카페 목록 조회
+router.get('/bookmark', isSecure, isAuthenticated, function(req, res, next) {
+    if(req.url.match(/\/?pageNo=\d+&rowCount=\d+/i)) {
+        var reqData = {};
+        reqData.customerId = 1;
+        reqData.pageNo = parseInt(req.query.pageNo) || 1;
+        reqData.rowCount = parseInt(req.query.rowCount) || 10;
+        Cafe.getBookmarkCafe(reqData, function(err, result) {
+            res.send({
+                message : "즐겨 찾기 카페 입니다.",
+                data : result,
+                currentPage: reqData.pageNo
+            });
+        });
+    }
 });
 
-//점주용
+// 새로운 카페 목록 5개 조회
+router.get('/new5', isSecure, isAuthenticated, function(req, res, next) {
+    Cafe.getNewCafe(function (err, results) {
+        res.send({
+            message : 'new 카페 입니다.',
+            data : results
+        });
+    });
+});
+
+
 //자기 카페 보기
 router.get('/me', isSecure, isAuthenticated, function(req, res, next) {
     Cafe.getCafeInfo(req.user.id, function(err, result) {
@@ -102,7 +126,7 @@ router.get('/me', isSecure, isAuthenticated, function(req, res, next) {
 
 
 // 카페 상세보기
-router.get('/:cafeId', isSecure, function(req, res, next) {
+router.get('/:cafeId', isSecure, isAuthenticated, function(req, res, next) {
     Cafe.getCafeInfo(req.params.cafeId, function(err, result) {
         if (err) {
             return next(err);
@@ -114,26 +138,26 @@ router.get('/:cafeId', isSecure, function(req, res, next) {
     });
 });
 
-//점주용
-//카페 정보 편집
+
+//카페 정보 수정
 router.put('/me', isSecure, isAuthenticated, function(req, res, next) {
-    if (!req.body.type) {
-        return next(new Error('타입을 지정해 주세요'));
-    }
-    if ((parseInt(req.body.type) === 0) && req.body.cafeAddress && req.body.cafePhoneNumber && req.body.businessHour && req.body.options){
-        var cafeData= {};
-        cafeData.id = req.user.id;
-        cafeData.cafeAddress = req.body.cafeAddress;
-        cafeData.cafePhoneNumber = req.body.cafePhoneNumber;
-        cafeData.businessHour = req.body.businessHour;
-        cafeData.latitude = parseFloat(req.body.latitude);
-        cafeData.longitude = parseFloat(req.body.longitude);
+    var type = parseInt(req.body.type || 2);
+    if (type === 2) {
+        return next(new Error('카페 정보수정의 타입은 0 점주 정보 수정 타입은 1 입니다.'));
+    } else if (type === 0) { // 카페 정보 수정
+        var reqData= {};
+        reqData.id = req.user.id;
+        reqData.cafeAddress = req.body.cafeAddress;
+        reqData.cafePhoneNumber = req.body.cafePhoneNumber;
+        reqData.businessHour = req.body.businessHour;
+        reqData.latitude = parseFloat(req.body.latitude);
+        reqData.longitude = parseFloat(req.body.longitude);
         var options = JSON.parse(req.body.options);
-        cafeData.wifi = parseInt(options.wifi);
-        cafeData.days = parseInt(options.days);
-        cafeData.parking = parseInt(options.parking);
-        cafeData.socket = parseInt(options.socket);
-        Cafe.editCafe(cafeData, function(err, result) {
+        reqData.wifi = parseInt(options.wifi);
+        reqData.days = parseInt(options.days);
+        reqData.parking = parseInt(options.parking);
+        reqData.socket = parseInt(options.socket);
+        Cafe.editCafe(reqData, function(err, result) {
             if (err) {
                 return next(err);
             }
@@ -141,14 +165,14 @@ router.put('/me', isSecure, isAuthenticated, function(req, res, next) {
                 message : '카페 정보 변경 완료'
             })
         });
-    } else if ((parseInt(req.body.type) === 1) && req.body.ownerName && req.body.password && req.body.ownerPhoneNumber && req.body.ownerEmail){
-        var ownerData = {};
-        ownerData.id = req.user.id;
-        ownerData.ownerName = req.body.ownerName;
-        ownerData.password = req.body.password;
-        ownerData.ownerPhoneNumber = req.body.ownerPhoneNumber;
-        ownerData.ownerEmail = req.body.ownerEmail;
-        Cafe.editOwner(ownerData, function(err, result) {
+    } else if (type === 1) { //점주 정보 수정
+        var reqData = {};
+        reqData.id = req.user.id;
+        reqData.ownerName = req.body.ownerName;
+        reqData.password = req.body.password;
+        reqData.ownerPhoneNumber = req.body.ownerPhoneNumber;
+        reqData.ownerEmail = req.body.ownerEmail;
+        Cafe.editOwner(reqData, function(err, result) {
             if (err) {
                 return next(err);
             }
@@ -156,50 +180,13 @@ router.put('/me', isSecure, isAuthenticated, function(req, res, next) {
                message : '점주 정보 변경 완료'
             });
         });
-    } else {
-        return next(new Error('정보를 모두 입력해 주세요'));
     }
 });
 
-//카페 이미지 업로드&수정
-router.put('/images', isSecure, isAuthenticated, function(req, res, next) {
-    var form = new formidable.IncomingForm();
-    form.uploadDir = path.join(__dirname, '../images/cafes');
-    form.keepExtensions = true;
-    form.multiples = false;
-    form.parse(req, function(err, fields, files) {
-        if (err) {
-            return next(err);
-        }
-        if (files) {
-            if(!Object.keys(files).toString().match(/photo\d+/i)){
-                next(new Error('file key이름을 확인해 주세욥'))
-            }
-            var sequence = parseInt(Object.keys(files).toString().substring(5, 6));
-            var imageFile = files["photo" + sequence];
-
-            Cafe.insertOrEditImages(req.user.id, imageFile, sequence, function (err, result) {
-                if (err) {
-                    return next(err);
-                }
-                res.send({
-                    message: '이미지 업로드 완료!',
-                });
-            });
-        } else {
-            return next(new Error('파일을 올려주세요'));
-        }
-    });
-});
-
-
-//점주용
 //ID 중복확인
-router.post('/duplication', isSecure, function(req, res, next) {
-    if(!req.body.ownerLoginId){
-        return next(new Error('아이디 입력해주세요'));
-    }
-    Cafe.checkId(req.body.ownerLoginId, function(err, result) {
+router.post('/checkid', function(req, res, next) {
+    var id = req.body.ownerLoginId || 0 ;
+    Cafe.checkId(id, function(err, result) {
         if (err) {
             return next(err)
         }

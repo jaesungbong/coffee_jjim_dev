@@ -1,9 +1,10 @@
 var express = require('express');
 var router = express.Router();
 var isSecure = require('./common').isSecure;
+var isAuthenticated = require('./common').isAuthenticated;
 
 // 입찰한 카페 내역 확인
-router.get('/', isSecure, function(req, res, next) {
+router.get('/', isSecure, isAuthenticated, function(req, res, next) {
     if(req.url.match(/\/?estimateId=\d+&pageNo=\d+&rowCount=\d+/i)){
         var estimateId = parseInt(req.query.estimateId);
         var pageNo = parseInt(req.query.pageNo);
@@ -26,7 +27,7 @@ router.get('/', isSecure, function(req, res, next) {
 });
 
 // 예약 내역 보기
-router.get('/done', isSecure, function(req, res, next) {
+router.get('/done', isSecure, isAuthenticated, function(req, res, next) {
     var userType = 1;
     //고객용
     if(userType === 0){
@@ -65,7 +66,7 @@ router.get('/done', isSecure, function(req, res, next) {
 
 // 카페 예약하기
 // 입찰서 테이블의 상태를 낙찰로 바꿈.
-router.put('/:proposalId', isSecure, function(req, res, next) {
+router.put('/:proposalId', isSecure, isAuthenticated, function(req, res, next) {
     var proposalId = req.params.proposalId;
     res.send({
         message : "예약 완료",
@@ -74,7 +75,7 @@ router.put('/:proposalId', isSecure, function(req, res, next) {
 });
 
 //입찰하기
-router.post('/', isSecure, function(req, res, next) {
+router.post('/', isSecure, isAuthenticated, function(req, res, next) {
     var reqData = {};
     reqData.estimateId = req.body.estimateId;
     reqData.bidPrice = req.body.bidPrice;

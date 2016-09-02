@@ -1,10 +1,11 @@
 var express = require('express');
 var router = express.Router();
 var isSecure = require('./common').isSecure;
+var isAuthenticated = require('./common').isAuthenticated;
 var Event = require('../models/event');
 
 //이벤트 썸네일 보기
-router.get('/', isSecure, function(req, res, next) {
+router.get('/', isSecure, isAuthenticated, function(req, res, next) {
     Event.getEvents(function (err, results) {
         if (err) {
             return next(err);

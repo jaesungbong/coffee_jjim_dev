@@ -1,8 +1,9 @@
 var express = require('express');
 var router = express.Router();
 var isSecure = require('./common').isSecure;
+var isAuthenticated = require('./common').isSecure;
 
-router.get('/', isSecure, function(req, res, next) {
+router.get('/', isSecure, isAuthenticated, function(req, res, next) {
     if(req.url.match(/\/?pageNo=\d+&rowCount=\d+/i)) {
         res.send({
             notices : [{
