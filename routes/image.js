@@ -17,7 +17,7 @@ router.put('/', isSecure, isAuthenticated, function(req, res, next) {
         if (err) {
             return next(err);
         }
-        if (Object.keys(files).toString().match(/photo\d+/i)) {
+        if (files && Object.keys(files).toString().match(/photo\d+/i)) {
             // 'photo + 숫자' 형식으로 들어온 문자열에서 숫자를 추출
             var sequence = parseInt(Object.keys(files).toString().substring(5, 6));
 
