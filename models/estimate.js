@@ -36,7 +36,6 @@ var estimateObj = {
 
         dbPool.getConnection(function (err, dbConn) {
             if (err) {
-                dbConn.release();
                 return callback(err);
             }
             var resultData = {};
@@ -177,13 +176,13 @@ var estimateObj = {
                                       'WHERE id = ?';
         dbPool.getConnection(function(err, dbConn) {
             if (err) {
-                dbConn.release();
                 return callback(err);
             }
             dbConn.query(sql_update_estimate_end, function(err, result) {
+                dbConn.release();
                 if (err) {
                     return callback(err);
-                    dbConn.release();
+
                 }
                 callback(null);
             })
@@ -201,7 +200,6 @@ var estimateObj = {
 
         dbPool.getConnection(function(err, dbConn) {
             if (err) {
-                dbConn.release();
                 return callback(err);
             }
             dbConn.query(sql_estimate_list, [reqData.cafeId, reqData.rowCount * (reqData.pageNo - 1), reqData.rowCount], function(err, results) {

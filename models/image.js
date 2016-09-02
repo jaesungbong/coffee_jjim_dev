@@ -26,7 +26,6 @@ var imageObj = {
 
         dbPool.getConnection(function (err, dbConn) {
             if (err) {
-                dbConn.release();
                 return callback(err);
             }
             // 이미지 파일이 있는지 없는지 검사

@@ -19,7 +19,6 @@ var eventObj = {
 
         dbPool.getConnection(function (err, dbConn) {
             if (err) {
-                dbConn.release();
                 return callback(err);
             }
             dbConn.query(sql_get_events, [], function(err, results) {

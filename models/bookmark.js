@@ -9,7 +9,6 @@ var bookmarkObj = {
 
         dbPool.getConnection(function (err, dbConn) {
             if (err) {
-                dbConn.release();
                 return callback(err);
             }
             dbConn.query(sql_insert_bookmark, [reqData.customerId, reqData.cafeId], function(err, results) {
@@ -27,7 +26,6 @@ var bookmarkObj = {
 
         dbPool.getConnection(function (err, dbConn) {
             if (err) {
-                dbConn.release();
                 return callback(err);
             }
             dbConn.query(sql_delete_bookmark, [reqData.customerId, reqData.cafeId], function(err, results) {

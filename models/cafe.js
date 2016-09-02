@@ -19,7 +19,6 @@ var CafeObj = {
 
         dbPool.getConnection(function(err, dbConn) {
             if (err) {
-                dbConn.release();
                 return callback(err);
             }
             dbConn.query(sql_select_password, [ownerLoginId], function(err, password) {
@@ -49,7 +48,6 @@ var CafeObj = {
         var sql = 'SELECT SHA2(?, 512) password';
         dbPool.getConnection(function(err, dbConn){
             if (err) {
-                dbConn.release();
                 return callback(err);
             }
             dbConn.query(sql, [password], function(err, results) {
@@ -162,7 +160,6 @@ var CafeObj = {
                               'WHERE owner_login_id = ?';
         dbPool.getConnection(function (err, dbConn) {
             if (err) {
-                dbConn.release();
                 return callback(err);
             }
             dbConn.query(sql_select_cafe, [id], function(err, result) {
@@ -183,7 +180,6 @@ var CafeObj = {
                           'WHERE id = ?';
         dbPool.getConnection(function (err, dbConn) {
             if (err) {
-                dbConn.release();
                 return callback(err);
             }
             dbConn.query(sql_update_cafe, [cafeData.cafeAddress, cafeData.cafePhoneNumber, cafeData.businessHour, cafeData.longitude, cafeData.latitude, cafeData.wifi, cafeData.days, cafeData.parking, cafeData.socket, cafeData.id], function(err, result) {
@@ -201,7 +197,6 @@ var CafeObj = {
             'WHERE id = ?';
         dbPool.getConnection(function(err, dbConn) {
             if (err) {
-                dbConn.release();
                 return callback(err);
             }
             dbConn.query(sql_update_owner, [ownerData.password, ownerData.ownerName, ownerData.ownerPhoneNumber, ownerData.ownerEmail, ownerData.id], function(err, result) {
@@ -226,7 +221,6 @@ var CafeObj = {
         
         dbPool.getConnection(function(err, dbConn){
             if (err) {
-                dbConn.release();
                 return callback(err);
             }
             async.waterfall([getCafeInfo, getCafeImage],
@@ -289,7 +283,6 @@ var CafeObj = {
                               'LIMIT ?,?';
         dbPool.getConnection(function (err, dbConn) {
             if (err) {
-                dbConn.release();
                 return callback(err);
             }
             dbConn.query(sql_select_cafe, [reqData.latitude, reqData.longitude, reqData.latitude, reqData.rowCount * (reqData.pageNo - 1), reqData.rowCount], function(err, results) {
@@ -320,7 +313,6 @@ var CafeObj = {
                                'LIMIT ?,?';
         dbPool.getConnection(function (err, dbConn) {
             if (err) {
-                dbConn.release();
                 return callback(err);
             }
             dbConn.query(sql_select_cafes, [reqData.latitude, reqData.longitude, reqData.latitude, '%'+ reqData.keyword +'%', reqData.rowCount * (reqData.pageNo - 1), reqData.rowCount], function(err, results) {
@@ -349,7 +341,6 @@ var CafeObj = {
                                     'LIMIT 5';
         dbPool.getConnection(function (err, dbConn) {
             if (err) {
-                dbConn.release();
                 return callback(err);
             }
             dbConn.query(sql_select_best5_cafe, [], function(err, results) {
@@ -376,7 +367,6 @@ var CafeObj = {
                                   'LIMIT 5';
         dbPool.getConnection(function (err, dbConn) {
             if (err) {
-                dbConn.release();
                 return callback(err);
             }
             dbConn.query(sql_select_new_cafe, [], function(err, results) {
@@ -402,7 +392,6 @@ var CafeObj = {
                                        'LIMIT ?, ?';
         dbPool.getConnection(function (err, dbConn) {
             if (err) {
-                dbConn.release();
                 return callback(err);
             }
             dbConn.query(sql_select_favorite_cafe, [reqData.customerId, reqData.rowCount * (reqData.pageNo - 1), reqData.rowCount], function(err, results) {
