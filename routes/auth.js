@@ -87,7 +87,8 @@ router.post('/local/login', isSecure, function(req, res, next) {
     });
 });
 
-router.get('/local/logout', isSecure, function(req, res, next) {
+//로그아웃
+router.get('/local/logout', function(req, res, next) {
     req.logout();
     res.send({ message: '로그아웃!' });
 });

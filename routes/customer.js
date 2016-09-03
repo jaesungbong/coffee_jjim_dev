@@ -2,13 +2,23 @@ var express = require('express');
 var router = express.Router();
 var isSecure = require('./common').isSecure;
 var isAuthenticated = require('./common').isAuthenticated;
+var Customer = require('../models/customer');
 
 //휴대폰 번호 등록
-router.put('/', isSecure, isAuthenticated, function(req, res, next) {
-    var customerPhoneNumber = req.body.customerPhoneNumber;
-    res.send({
-        customerPhoneNumber : customerPhoneNumber
-    })
+router.put('/me', isSecure, isAuthenticated, function(req, res, next) {
+    var reqData = {};
+    reqData.customerId = 1;
+    //reqData.customerId = req.user.id;
+    reqData.phoneNumber = req.body.phoneNumber || '010-1234-5678';
+    Customer.setPhoneNumber(reqData, function(err, result) {
+        if (err) {
+            return next(err);
+        }
+        res.send({
+            code : 1,
+            message : '휴대폰 번호 등록 완료'
+        });
+    });
 });
 
 

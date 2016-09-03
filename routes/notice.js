@@ -2,15 +2,22 @@ var express = require('express');
 var router = express.Router();
 var isSecure = require('./common').isSecure;
 var isAuthenticated = require('./common').isSecure;
+var Notice = require('../models/notice');
 
 router.get('/', isSecure, isAuthenticated, function(req, res, next) {
     if(req.url.match(/\/?pageNo=\d+&rowCount=\d+/i)) {
-        res.send({
-            notices : [{
-                title: "역경매 카페목록 업데이트 안내",
-                content: "서버 점검일정을 안내드립니다.",
-                dateTime: "2016 - 08 - 46 08: 08:00"
-            }]
+        var reqData = {};
+        reqData.pageNo = parseInt(req.query.pageNo) || 1;
+        reqData.rowCount = parseInt(req.query.rowCount) || 10;
+        Notice.getNotice(reqData, function(err, result) {
+           if (err) {
+               return next(err);
+           }
+           res.send({
+               code : 1,
+               message : '공지사항 입니다.',
+               data : result
+           })
         });
     }
 });

@@ -9,7 +9,7 @@ var path = require('path');
 var async = require('async');
 var fs = require('fs');
 
-//점주 회원 가입
+//카페 회원 가입
 router.post('/', isSecure, function(req, res, next) {
     var reqData = {};
     reqData.ownerName = req.body.ownerName || 'ownerName' ;

@@ -2,6 +2,25 @@ var express = require('express');
 var router = express.Router();
 var isSecure = require('./common').isSecure;
 var isAuthenticated = require('./common').isAuthenticated;
+var Proposal = require('../models/proposal');
+var Cafe = require('../models/cafe');
+
+//입찰하기
+router.post('/', isSecure, isAuthenticated, function(req, res, next) {
+    var reqData = {};
+    reqData.cafeId = req.user.id;
+    reqData.estimateId = parseInt(req.body.estimateId || 0);
+    reqData.bidPrice = parseInt(req.body.bidPrice || 0);
+    var resData = {};
+    resData.bidPrice = parseInt(req.body.bidPrice || 0);
+    Proposal.doProposal(reqData, function(err, result) {
+        if (err) {
+            return next(err);
+        }
+        Cafe.getCafeInfo()
+    });
+});
+
 
 // 입찰한 카페 내역 확인
 router.get('/', isSecure, isAuthenticated, function(req, res, next) {
@@ -74,16 +93,5 @@ router.put('/:proposalId', isSecure, isAuthenticated, function(req, res, next) {
     })
 });
 
-//입찰하기
-router.post('/', isSecure, isAuthenticated, function(req, res, next) {
-    var reqData = {};
-    reqData.estimateId = req.body.estimateId;
-    reqData.bidPrice = req.body.bidPrice;
-    res.send({
-        proposalId: 1,
-        message : "입찰 완료",
-        reqData : reqData
-    })
-});
 
 module.exports = router;

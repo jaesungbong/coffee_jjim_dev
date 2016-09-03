@@ -3,12 +3,21 @@ var async = require('async');
 var dbPool = require('../models/common').dbPool;
 
 var CustomerObj = {
-    findOrCreate : function(profile, callback) {
-        return callback(null, {
-            id: 2,
-            name: profile.displayName,
-            email: profile.emails[0].value,
-            facebookid: profile.id
+    setPhoneNumber : function(reqData, callback) {
+        var sql_update_phone_number = 'UPDATE customer ' +
+                                      'SET phone_number = ? ' +
+                                      'WHERE id = ?';
+        dbPool.getConnection(function(err, dbConn) {
+           if (err) {
+               return callback(err);
+           }
+           dbConn.query(sql_update_phone_number, [reqData.phoneNumber, reqData.customerId], function(err, results) {
+               dbConn.release();
+               if (err) {
+                   return callback(err);
+               }
+               callback(null);
+           })
         });
     }
 };

@@ -24,7 +24,7 @@ router.get('/', isSecure, isAuthenticated, function(req, res, next) {
 
 
 // 즐겨찾기 하기
-router.post('/', isSecure, function(req, res, next) {
+router.post('/', isAuthenticated, function(req, res, next) {
     var reqData = {};
     reqData.customerId = 1;
     reqData.cafeId = req.body.cafeId || 0;
@@ -39,7 +39,7 @@ router.post('/', isSecure, function(req, res, next) {
 });
 
 // 즐겨찾기 카페 삭제
-router.delete('/:cafeId', isAuthenticated, isSecure, function(req, res, next) {
+router.delete('/:cafeId', isAuthenticated, function(req, res, next) {
     var reqData = {};
     reqData.customerId = 1;
     reqData.cafeId = req.params.cafeId;

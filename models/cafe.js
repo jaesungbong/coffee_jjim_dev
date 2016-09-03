@@ -407,7 +407,8 @@ var CafeObj = {
                 callback(null, results);
             })
         })
-    }
+    },
+    getProposalCafe
 
 };
 

@@ -5,7 +5,6 @@ var Estimate = require('../models/estimate');
 var fcm = require('node-gcm');
 var isAuthenticated = require('./common').isAuthenticated;
 
-// 고객용
 // 견적서 작성
 router.post('/', isSecure, isAuthenticated, function(req, res, next) {
     var estimateData={};

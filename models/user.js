@@ -89,6 +89,129 @@ var UserObj = {
             }
 
         });
+    },
+    getAuctionRange : function(id, callback) {
+        var sql_select_owner_login_id = 'SELECT owner_login_id ' +
+                                        'FROM cafe ' +
+                                        'WHERE id = ?';
+
+        var sql_select_auction_range_from_cafe = 'SELECT auction_range auctionRange ' +
+                                                 'FROM cafe ' +
+                                                 'WHERE id = ?';
+
+        var sql_select_auction_range_from_customer = 'SELECT auction_range auctionRange ' +
+                                                     'FROM customer ' +
+                                                     'WHERE id = ?';
+
+        dbPool.getConnection(function(err, dbConn) {
+           if (err) {
+               return callback(err);
+           }
+           dbConn.query(sql_select_owner_login_id, [id], function(err, results) {
+                if (err) {
+                    dbConn.release();
+                    return callback(err);
+                }
+                console.log(results);
+                if(results[0].length !== 0) { //카페일 경우
+                    getCafeAuctionRange(id, function(err, result) {
+                        dbConn.release();
+                        if (err) {
+                            return callback(err);
+                        }
+                        callback(null, result);
+                    });
+                } else { //고객일 경우
+                    getCustomerAuctionRange(id, function(err, result) {
+                        dbConn.release();
+                        if (err) {
+                            return callback(err);
+                        }
+                        callback(null, result);
+                    });
+                }
+           });
+
+           function getCafeAuctionRange(id, callback) {
+               dbConn.query(sql_select_auction_range_from_cafe, [id], function(err, results) {
+                    if (err) {
+                        return callback(err);
+                    }
+                    callback(null, results[0].auctionRange)
+               });
+           }
+
+
+           function getCustomerAuctionRange(id, callback) {
+                dbConn.query(sql_select_auction_range_from_customer, [id], function(err, results) {
+                    if (err) {
+                        return callback(err);
+                    }
+                    callback(null, results[0].auctionRange);
+                });
+           }
+        });
+    },
+    setAuctionRange : function(reqData, callback) {
+        var sql_select_owner_login_id = 'SELECT owner_login_id ' +
+                                        'FROM cafe ' +
+                                        'WHERE id = ?';
+
+        var sql_update_cafe_auction_range = 'UPDATE cafe ' +
+                                            'SET auction_range = ? ' +
+                                            'WHERE id = ?';
+
+        var sql_update_customer_auction_range = 'UPDATE customer ' +
+                                               'SET auction_range = ? ' +
+                                               'WHERE id = ?';
+
+        dbPool.getConnection(function(err, dbConn) {
+            if (err) {
+                return callback(err);
+            }
+            dbConn.query(sql_select_owner_login_id, [reqData.id], function(err, results) {
+                if (err) {
+                    dbConn.release();
+                    return callback(err);
+                }
+                if(results[0].length !== 0) { //카페일 경우
+                    setCafeAuctionRange(reqData, function(err, result) {
+                        dbConn.release();
+                        if (err) {
+                            return callback(err);
+                        }
+                        callback(null);
+                    });
+                } else { //고객일 경우
+                    setCustomerAuctionRange(reqData, function(err, result) {
+                        dbConn.release();
+                        if (err) {
+                            return callback(err);
+                        }
+                        callback(null);
+                    });
+                }
+            });
+
+            function setCafeAuctionRange(reqData, callback) {
+                dbConn.query(sql_update_cafe_auction_range, [reqData.auctionRange, reqData.id], function(err, results) {
+                    if (err) {
+                        return callback(err);
+                    }
+                    callback(null)
+                });
+            }
+
+
+            function setCustomerAuctionRange(reqData, callback) {
+                dbConn.query(sql_update_customer_auction_range, [reqData.auctionRange, reqData.id], function(err, results) {
+                    if (err) {
+                        return callback(err);
+                    }
+                    callback(null);
+                });
+            }
+        });
     }
 };
 

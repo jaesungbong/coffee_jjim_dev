@@ -20,6 +20,7 @@ var cafe = require('./routes/cafe');
 var auth = require('./routes/auth');
 var proposal = require('./routes/proposal');
 var image = require('./routes/image');
+var user = require('./routes/user');
 var app = express();
 
 app.set('env', 'development');
@@ -59,6 +60,7 @@ app.use('/customers', customer);
 app.use('/notices', notice);
 app.use('/settings', setting);
 app.use('/images', image);
+app.use('/users', user);
 
 // app.use('/', routes);
 // app.use('/users', users);
