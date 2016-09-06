@@ -1,10 +1,9 @@
 var express = require('express');
 var router = express.Router();
-var isSecure = require('./common').isSecure;
-var isAuthenticated = require('./common').isSecure;
+var isAuthenticated = require('./common').isAuthenticated;
 var Notice = require('../models/notice');
 
-router.get('/', isSecure, isAuthenticated, function(req, res, next) {
+router.get('/', isAuthenticated, function(req, res, next) {
     if(req.url.match(/\/?pageNo=\d+&rowCount=\d+/i)) {
         var reqData = {};
         reqData.pageNo = parseInt(req.query.pageNo) || 1;

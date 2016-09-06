@@ -262,7 +262,7 @@ var CafeObj = {
                     }
                     if (images.length !== 0) {
                         for(var i = 0; i < images.length; i++) {
-                            images[i].imageUrl = url.resolve('https://ec2-52-78-110-229.ap-northeast-2.compute.amazonaws.com:4433', '/cafeimages/' + images[i].imageUrl);
+                            images[i].imageUrl = url.resolve('http://ec2-52-78-110-229.ap-northeast-2.compute.amazonaws.com:8080', '/cafeimages/' + images[i].imageUrl);
                         }
                         callback(null, cafeInfo, images);
                     } else {
@@ -292,7 +292,7 @@ var CafeObj = {
                 }
                 for(var i = 0; i < results.length; i++){
                     if (results[i].imageUrl) {
-                            results[i].imageUrl = url.resolve('https://ec2-52-78-110-229.ap-northeast-2.compute.amazonaws.com:4433', '/cafeimages/' + results[i].imageUrl);
+                            results[i].imageUrl = url.resolve('http://ec2-52-78-110-229.ap-northeast-2.compute.amazonaws.com:8080', '/cafeimages/' + results[i].imageUrl);
                     } else {
                         results[i].imageUrl = - 1;
                     }
@@ -308,21 +308,21 @@ var CafeObj = {
                                'FROM cafe c LEFT JOIN (SELECT * ' +
                                                       'FROM image ' +
                                                       'WHERE sequence = 1) i ON (c.id = i.cafe_id) ' +
-                               'WHERE c.cafe_address like ? ' +
+                               'WHERE c.cafe_address like ? OR c.cafe_name like ? ' +
                                'ORDER BY distance ' +
                                'LIMIT ?,?';
         dbPool.getConnection(function (err, dbConn) {
             if (err) {
                 return callback(err);
             }
-            dbConn.query(sql_select_cafes, [reqData.latitude, reqData.longitude, reqData.latitude, '%'+ reqData.keyword +'%', reqData.rowCount * (reqData.pageNo - 1), reqData.rowCount], function(err, results) {
+            dbConn.query(sql_select_cafes, [reqData.latitude, reqData.longitude, reqData.latitude, '%'+ reqData.keyword +'%', '%'+ reqData.keyword +'%', reqData.rowCount * (reqData.pageNo - 1), reqData.rowCount], function(err, results) {
                 dbConn.release();
                 if (err) {
                     return callback(err);
                 }
                 for(var i = 0; i < results.length; i++){
                     if (results[i].imageUrl) {
-                        results[i].imageUrl = url.resolve('https://ec2-52-78-110-229.ap-northeast-2.compute.amazonaws.com:4433', '/cafeimages/' + results[i].imageUrl);
+                        results[i].imageUrl = url.resolve('http://ec2-52-78-110-229.ap-northeast-2.compute.amazonaws.com:8080', '/cafeimages/' + results[i].imageUrl);
                     } else {
                         results[i].imageUrl = - 1;
                     }
@@ -350,7 +350,7 @@ var CafeObj = {
                 }
                 for(var i = 0; i < results.length; i++){
                     if (results[i].imageUrl) {
-                        results[i].imageUrl = url.resolve('https://ec2-52-78-110-229.ap-northeast-2.compute.amazonaws.com:4433', '/cafeimages/' + results[i].imageUrl);
+                        results[i].imageUrl = url.resolve('http://ec2-52-78-110-229.ap-northeast-2.compute.amazonaws.com:8080', '/cafeimages/' + results[i].imageUrl);
                     }
                 }
                 callback(null, results);
@@ -376,40 +376,13 @@ var CafeObj = {
                 }
                 for(var i = 0; i < results.length; i++){
                     if (results[i].imageUrl) {
-                        results[i].imageUrl = url.resolve('https://ec2-52-78-110-229.ap-northeast-2.compute.amazonaws.com:4433', '/cafeimages/' + results[i].imageUrl);
+                        results[i].imageUrl = url.resolve('http://ec2-52-78-110-229.ap-northeast-2.compute.amazonaws.com:8080', '/cafeimages/' + results[i].imageUrl);
                     }
                 }
                 callback(null, results);
             })
         })
     },
-    getBookmarkCafe : function(reqData, callback) {
-        // 이미지가 있는카페 없는카페 모두 가져옴.
-        var sql_select_favorite_cafe = 'SELECT c.id cafeId, c.cafe_name cafeName, c.cafe_address cafeAddress, i.image_name imageUrl, c.wifi, c.days, c.parking, c.socket ' +
-                                       'FROM cafe c JOIN bookmark b ON(c.id = b.cafe_id) ' +
-                                                   'LEFT JOIN (SELECT * FROM image WHERE sequence = 1) i ON(c.id = i.cafe_id) ' +
-                                       'WHERE b.customer_id = ? ' +
-                                       'LIMIT ?, ?';
-        dbPool.getConnection(function (err, dbConn) {
-            if (err) {
-                return callback(err);
-            }
-            dbConn.query(sql_select_favorite_cafe, [reqData.customerId, reqData.rowCount * (reqData.pageNo - 1), reqData.rowCount], function(err, results) {
-                dbConn.release();
-                if (err) {
-                    return callback(err);
-                }
-                for(var i = 0; i < results.length; i++){
-                    if (results[i].imageUrl) {
-                        results[i].imageUrl = url.resolve('https://ec2-52-78-110-229.ap-northeast-2.compute.amazonaws.com:4433', '/cafeimages/' + results[i].imageUrl);
-                    }
-                }
-                callback(null, results);
-            })
-        })
-    },
-    getProposalCafe
-
 };
 
 module.exports = CafeObj;

@@ -7,6 +7,7 @@ var Cafe = require('../models/cafe');
 var User = require('../models/user');
 var Customer = require('../models/customer');
 var isSecure = require('./common').isSecure;
+var isAuthenticated = require('./common').isAuthenticated;
 var KakaoStrategy = require('passport-kakao').Strategy;
 
 // 카페 로그인 strategy
@@ -82,18 +83,19 @@ router.post('/local/login', isSecure, function(req, res, next) {
             return next(err);
         }
         res.send({
+            code : 1,
             message: '로그인 OK!'
         });
     });
 });
 
 //로그아웃
-router.get('/local/logout', function(req, res, next) {
+router.get('/local/logout', isAuthenticated, function(req, res, next) {
     req.logout();
     res.send({ message: '로그아웃!' });
 });
 
-router.post('/facebook/token', isSecure, passport.authenticate('facebook-token', {scope : ['email']}), function(req, res, next) {
+router.post('/kakaotalk/token', isSecure, passport.authenticate('facebook-token', {scope : ['email']}), function(req, res, next) {
     res.send(req.user? '페이스북 로그인' : '실패');
 });
 

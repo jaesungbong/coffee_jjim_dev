@@ -34,7 +34,7 @@ router.post('/', isSecure, function(req, res, next) {
 });
 
 // 카페 보기
-router.get('/', isSecure, isAuthenticated, function(req, res, next) {
+router.get('/', isAuthenticated, function(req, res, next) {
     var keyword = req.query.keyword;
     var reqData = {};
     // 키워드가 있을 경우 검색 카페 보기
@@ -87,7 +87,7 @@ router.get('/checkid', function(req, res, next) {
 });
 
 // 베스트 카페 목록5개 조회
-router.get('/best5', isSecure, isAuthenticated, function(req, res, next) {
+router.get('/best5', isAuthenticated, function(req, res, next) {
     Cafe.getBest5Cafe(function (err, results) {
         res.send({
             message : 'best5 카페 입니다.',
@@ -98,7 +98,7 @@ router.get('/best5', isSecure, isAuthenticated, function(req, res, next) {
 
 
 // 새로운 카페 목록 5개 조회
-router.get('/new5', isSecure, isAuthenticated, function(req, res, next) {
+router.get('/new5', isAuthenticated, function(req, res, next) {
     Cafe.getNewCafe(function (err, results) {
         res.send({
             message : 'new 카페 입니다.',
@@ -109,7 +109,7 @@ router.get('/new5', isSecure, isAuthenticated, function(req, res, next) {
 
 
 //자기 카페 보기
-router.get('/me', isSecure, isAuthenticated, function(req, res, next) {
+router.get('/me', isAuthenticated, function(req, res, next) {
     Cafe.getCafeInfo(req.user.id, function(err, result) {
         if (err) {
             return next(err);
@@ -123,7 +123,7 @@ router.get('/me', isSecure, isAuthenticated, function(req, res, next) {
 
 
 // 카페 상세보기
-router.get('/:cafeId', isSecure, isAuthenticated, function(req, res, next) {
+router.get('/:cafeId', isAuthenticated, function(req, res, next) {
     Cafe.getCafeInfo(req.params.cafeId, function(err, result) {
         if (err) {
             return next(err);
@@ -149,11 +149,10 @@ router.put('/me', isSecure, isAuthenticated, function(req, res, next) {
         reqData.businessHour = req.body.businessHour;
         reqData.latitude = parseFloat(req.body.latitude);
         reqData.longitude = parseFloat(req.body.longitude);
-        var options = JSON.parse(req.body.options);
-        reqData.wifi = parseInt(options.wifi);
-        reqData.days = parseInt(options.days);
-        reqData.parking = parseInt(options.parking);
-        reqData.socket = parseInt(options.socket);
+        reqData.wifi = parseInt(req.body.wifi || 0);
+        reqData.days = parseInt(req.body.days || 0);
+        reqData.parking = parseInt(req.body.parking || 0);
+        reqData.socket = parseInt(req.body.socket || 0);
         Cafe.editCafe(reqData, function(err, result) {
             if (err) {
                 return next(err);

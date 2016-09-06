@@ -1,30 +1,31 @@
 var express = require('express');
 var router = express.Router();
-var isSecure = require('./common').isSecure;
 var Estimate = require('../models/estimate');
 var fcm = require('node-gcm');
 var isAuthenticated = require('./common').isAuthenticated;
+var CronJob = require('cron').CronJob;
+var moment = require('moment-timezone');
 
 // 견적서 작성
-router.post('/', isSecure, isAuthenticated, function(req, res, next) {
+router.post('/', isAuthenticated, function(req, res, next) {
     var estimateData={};
     var customerId = 1;
     estimateData.customerId = customerId;
-    estimateData.people = parseInt(req.body.people) || 1;
+    estimateData.people = parseInt(req.body.people || 1);
     estimateData.latitude = parseFloat(req.body.latitude);
     estimateData.longitude = parseFloat(req.body.longitude);
-    estimateData.auctionTime = parseInt(req.body.auctionTime) || 10;
+    estimateData.auctionTime = parseInt(req.body.auctionTime || 10);
     estimateData.reservationTime = req.body.reservationTime;
-    estimateData.options = JSON.parse(req.body.options);
+    estimateData.wifi = parseInt(req.body.wifi || 0);
+    estimateData.days = parseInt(req.body.days || 0);
+    estimateData.parking = parseInt(req.body.parking || 0);
+    estimateData.socket = parseInt(req.body.socket || 0);
     Estimate.writeEstimate(estimateData, function(err, result) {
         if (err) {
             return next(err);
         }
-        // 보낼 카페들의 토큰
-        var cafeTokens = result.fcmToken;
-        // 자신의 토큰
-        var myTokens = result.myToken;
-        //카페들에게 보낼 메세지
+
+        // 견적서가 도착할 카페들에게 보낼 메세지
         var messageToCafe = new fcm.Message({
             data: {
                 key1 : JSON.stringify(result.estimateId), //견적서 id
@@ -45,6 +46,7 @@ router.post('/', isSecure, isAuthenticated, function(req, res, next) {
                 body : '견적서 도착'
             }
         });
+
         //자신에게 보낼 메세지
         var messageToMe = new fcm.Message({
             data : {
@@ -64,30 +66,45 @@ router.post('/', isSecure, isAuthenticated, function(req, res, next) {
         var senderToMe = new fcm.Sender(process.env.FCM_KEY);
 
         // 카페들에게 send
-        senderToCafe.send(messageToCafe, {registrationTokens: cafeTokens}, function(err, response) {
+        senderToCafe.send(messageToCafe, {registrationTokens: result.cafeFcmToken}, function(err, response) {
             if (err) {
-                return next(err); //이곳에서 400 error발생
+                return next(err);
             }
-            res.send(response);
+            res.send({
+                code : 1,
+                message : '견적 요청 완료'
+            });
 
-            //자신에게 send
-            setTimeout(function(){
-                senderToMe.send(messageToMe, {registrationTokens : myTokens}, function(err, response) {
+            var timeZone = "Asia/Seoul";
+            var future = moment().tz(timeZone).add(estimateData.auctionTime, 'm');
+            var cronTime =
+                future.second() + " " +
+                future.minute() + " " +
+                future.hour() + " " +
+                future.date() + " " +
+                future.month() + " " +
+                future.day();
+
+            var job = new CronJob(cronTime, function() {
+                // 자신에게 send
+                senderToMe.send(messageToMe, {registrationTokens : result.myToken}, function(err, response) {
                     Estimate.endAuction(result.estimateId, function(err, result) {
                         if (err) {
                             return next(err);
                         }
+                        res.send(response);
                     });
-                    res.send(response, result.estimateId);
-                }, 1000 * 60 * estimateData.auctionTime);
-            });
+                });
+                job.stop();
+            }, function() {
+
+            }, true, timeZone);
         });
     });
 });
 
-// 점주용
-// 자신에게 들어온 견적 목록 보기
-router.get('/', isSecure, isAuthenticated, function(req, res, next) {
+// 견적서 목록
+router.get('/', isAuthenticated, function(req, res, next) {
     var reqData = {};
     reqData.cafeId = parseInt(req.user.id || 0);
     reqData.pageNo = parseInt(req.query.pageNo || 1);
@@ -97,15 +114,17 @@ router.get('/', isSecure, isAuthenticated, function(req, res, next) {
             return next(err);
         }
         res.send({
+            code : 1,
             message: "경매진행중인 견적서 목록입니다.",
-            data : results
+            data : results,
+            currentPage : reqData.pageNo
         });
     });
 });
 
 // 고객용
 // 특정 견적서 내용 보기
-router.get('/:estimateId', isSecure, isAuthenticated, function(req, res, next) {
+router.get('/:estimateId', isAuthenticated, function(req, res, next) {
     var estimateId = req.params.estimateId;
     res.send({
         auctionStartDateTime : "2016-05-04",

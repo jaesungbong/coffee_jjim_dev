@@ -10,7 +10,6 @@ var redis = require('redis');
 var redisClient = redis.createClient();
 var redisStore = require('connect-redis')(session);
 
-var setting = require('./routes/setting');
 var notice = require('./routes/notice');
 var customer = require('./routes/customer');
 var bookmark = require('./routes/bookmark');
@@ -58,7 +57,6 @@ app.use('/estimates', estimate);
 app.use('/bookmarks', bookmark);
 app.use('/customers', customer);
 app.use('/notices', notice);
-app.use('/settings', setting);
 app.use('/images', image);
 app.use('/users', user);
 

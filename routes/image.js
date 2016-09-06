@@ -1,14 +1,13 @@
 var express = require('express');
 var router = express.Router();
 var path = require('path');
-var isSecure = require('./common').isSecure;
 var isAuthenticated = require('./common').isAuthenticated;
 var formidable = require('formidable');
 var fs = require('fs');
 var Image = require('../models/image');
 
 //카페 이미지 업로드&수정
-router.put('/', isSecure, isAuthenticated, function(req, res, next) {
+router.put('/', isAuthenticated, function(req, res, next) {
     var form = new formidable.IncomingForm();
     form.uploadDir = path.join(__dirname, '../images/cafes');
     form.keepExtensions = true;
