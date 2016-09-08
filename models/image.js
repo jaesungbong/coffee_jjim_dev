@@ -29,7 +29,7 @@ var imageObj = {
                 return callback(err);
             }
             // 이미지 파일이 있는지 없는지 검사
-            dbConn.query(sql_select_image, [cafeId, sequence], function (err, results) {
+            dbConn.query(sql_select_image, [id, sequence], function (err, results) {
                 if (err) {
                     dbConn.release();
                     return callback(err);
@@ -59,7 +59,7 @@ var imageObj = {
             });
 
             function insertImage(callback) {
-                dbConn.query(sql_insert_image, [cafeId, sequence, path.basename(destImagePath), destImagePath], function(err,result) {
+                dbConn.query(sql_insert_image, [id, sequence, path.basename(destImagePath), destImagePath], function(err, result) {
                     if (err) {
                         return callback (err);
                     }
@@ -86,7 +86,7 @@ var imageObj = {
             }
 
             function deleteImage(callback) {
-                dbConn.query(sql_delete_image, [cafeId, sequence], function(err,result) {
+                dbConn.query(sql_delete_image, [id, sequence], function(err, result) {
                     if (err) {
                         return callback (err);
                     }
@@ -95,7 +95,7 @@ var imageObj = {
             }
 
             function deleteRealImage(callback) {
-                dbConn.query(sql_select_imagepath, [cafeId, sequence], function(err,result) {
+                dbConn.query(sql_select_imagepath, [id, sequence], function(err, result) {
                     if (err) {
                         return callback (err);
                     }

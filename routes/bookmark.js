@@ -26,7 +26,7 @@ router.get('/', isAuthenticated, function(req, res, next) {
 router.post('/', isAuthenticated, function(req, res, next) {
     var reqData = {};
     reqData.customerId = 1;
-    reqData.cafeId = req.body.cafeId || 0;
+    reqData.id = req.body.id || 0;
     Bookmark.addCafe(reqData, function(err, result) {
         if (err) {
             return next(err);
@@ -38,10 +38,10 @@ router.post('/', isAuthenticated, function(req, res, next) {
 });
 
 // 즐겨찾기 카페 삭제
-router.delete('/:cafeId', isAuthenticated, function(req, res, next) {
+router.delete('/:id', isAuthenticated, function(req, res, next) {
     var reqData = {};
     reqData.customerId = 1;
-    reqData.cafeId = req.params.cafeId;
+    reqData.id = req.params.id;
     Bookmark.deleteCafe(reqData, function(err, result) {
         if (err) {
             return next(err);

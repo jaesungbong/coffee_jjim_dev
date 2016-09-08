@@ -21,25 +21,23 @@ router.put('/me', isSecure, isAuthenticated, function(req, res, next) {
     });
 });
 
-
-// 예약한 고객 정보 보기
-router.get('/:customerId', isSecure, isAuthenticated, function(req, res, next) {
-    var customerId = req.params.customerId;
-    res.send({
-        customerNickName : "userA",
-        customerPhoneNumber : "010-8809-8943",
-        numOfvist : 34,
-        bookmark : true,
-        visitData : {
-        totalVisit : 10,
-        data : { reservationDateTime : "2016-08-13 16:00:00",
-            people : 3,
-            options : { wifi : true, days : true, parking : true, socket : true },
-            bidPrice : 3000}
+//고객관리
+router.get('/', isAuthenticated, function(req, res, next) {
+    var reqData = {};
+    reqData.cafeId = req.user.id;
+    reqData.pageNo = parseInt(req.query.pageNo || 1);
+    reqData.rowCount = parseInt(req.query.rowCount || 10);
+    Customer.getVisitedCustomer(reqData, function(err, results) {
+        if (err) {
+            return callback(err);
         }
+        res.send({
+            code : 1,
+            message : '고객 관리 목록입니다.',
+            result : results,
+            currentPage : reqData.pageNo
+        })
     })
 });
-
-
 
 module.exports = router;

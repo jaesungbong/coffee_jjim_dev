@@ -34,7 +34,7 @@ router.put('/', isAuthenticated, function(req, res, next) {
             var destImagePath = path.join(path.dirname(srcImagePath), newFileName);
 
             // 이 곳의 destImagePath는 DB상에 저장될 경로
-            Image.insertOrEditImages(req.user.id, destImagePath, sequence, function (err, result) { 
+            Image.insertOrEditImages(req.user.id, destImagePath, sequence, function (err, result) {
                 if (err) {
                     return next(err);
                 }

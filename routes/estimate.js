@@ -3,6 +3,7 @@ var router = express.Router();
 var Estimate = require('../models/estimate');
 var fcm = require('node-gcm');
 var isAuthenticated = require('./common').isAuthenticated;
+var isSecure = require('./common').isSecure;
 var CronJob = require('cron').CronJob;
 var moment = require('moment-timezone');
 
@@ -103,38 +104,69 @@ router.post('/', isAuthenticated, function(req, res, next) {
     });
 });
 
+// 예약현황
+router.get('/booked', isSecure, isAuthenticated, function(req, res, next) {
+    var timeZone = "Asia/Seoul";
+    var present = moment().tz(timeZone);
+    if(req.url.match(/\/?type=\d+&year=\d+&month=\d+/i)) {
+        var reqData = {};
+        reqData.type = parseInt(req.query.type);
+        reqData.year = parseInt(req.query.year || present.year() + 1);
+        reqData.month = parseInt(req.query.month || (present.month() + 1));
+        if (reqData.type === 0) { //고객용
+            reqData.customerId = 1;
+            //reqData.customerId = req.user.id;
+            Estimate.getBookedEstimateForCustomer(reqData, function (err, results) {
+                if (err) {
+                    return next (err);
+                }
+                res.send({
+                    code : 1,
+                    message : "고객용 예약 현황 입니다.",
+                    result : results,
+                    currentYear : reqData.year,
+                    currentMonth : reqData.month
+                });
+            });
+        } else if (reqData.type === 1) { //점주용
+            reqData.cafeId = req.user.id;
+            Estimate.getBookedEstimateForCafe(reqData, function (err, results) {
+                if (err) {
+                    return next (err);
+                }
+                res.send({
+                    code : 1,
+                    message : "카페용 예약 현황 입니다.",
+                    result : results,
+                    currentYear : reqData.year,
+                    currentMonth : reqData.month
+                });
+            })
+        } else {
+            return next(new Error('타입은 0 또는 1 입니다.'));
+        }
+    }
+});
+
 // 견적서 목록
 router.get('/', isAuthenticated, function(req, res, next) {
-    var reqData = {};
-    reqData.cafeId = parseInt(req.user.id || 0);
-    reqData.pageNo = parseInt(req.query.pageNo || 1);
-    reqData.rowCount = parseInt(req.query.rowCount || 10);
-    Estimate.getEstimateList(reqData, function(err, results) {
-        if (err) {
-            return next(err);
-        }
-        res.send({
-            code : 1,
-            message: "경매진행중인 견적서 목록입니다.",
-            data : results,
-            currentPage : reqData.pageNo
+    if(req.url.match(/\/?pageNo=\d+&rowCount=\d+/i)) {
+        var reqData = {};
+        reqData.id = parseInt(req.user.id || 0);
+        reqData.pageNo = parseInt(req.query.pageNo || 1);
+        reqData.rowCount = parseInt(req.query.rowCount || 10);
+        Estimate.getEstimateList(reqData, function (err, results) {
+            if (err) {
+                return next(err);
+            }
+            res.send({
+                code: 1,
+                message: "경매진행중인 견적서 목록입니다.",
+                data: results,
+                currentPage: reqData.pageNo
+            });
         });
-    });
+    }
 });
-
-// 고객용
-// 특정 견적서 내용 보기
-router.get('/:estimateId', isAuthenticated, function(req, res, next) {
-    var estimateId = req.params.estimateId;
-    res.send({
-        auctionStartDateTime : "2016-05-04",
-        cafeAddress : "서울시 강남구",
-        reservationDateTime : "2018-05-05 12:00:00",
-        people : 3,
-        options : { wifi : true, days : true, parking : false, soket : false },
-        auctionTime : 20
-    });
-});
-
 
 module.exports = router;

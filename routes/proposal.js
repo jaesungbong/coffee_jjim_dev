@@ -7,7 +7,7 @@ var fcm = require('node-gcm');
 // 입찰하기
 router.post('/', isAuthenticated, function(req, res, next) {
     var reqData = {};
-    reqData.cafeId = req.user.id;
+    reqData.id = req.user.id;
     reqData.estimateId = parseInt(req.body.estimateId || 0);
     reqData.bidPrice = parseInt(req.body.bidPrice || 0);
     Proposal.doProposal(reqData, function(err, result) {
@@ -17,7 +17,7 @@ router.post('/', isAuthenticated, function(req, res, next) {
         var messageToCustomer = new fcm.Message({
             data : {
                 key1 : result.proposalId,
-                key2 : result.cafeId,
+                key2 : result.id,
                 key3 : result.cafeName,
                 key4 : result.cafeAddress,
                 key5 : result.imageUrl,
@@ -44,8 +44,7 @@ router.post('/', isAuthenticated, function(req, res, next) {
     });
 });
 
-
-// 입찰서 목록
+// 입찰카페 목록
 router.get('/', isAuthenticated, function(req, res, next) {
     if(req.url.match(/\/?pageNo=\d+&rowCount=\d+/i)){
         var reqData = {};
@@ -58,7 +57,7 @@ router.get('/', isAuthenticated, function(req, res, next) {
                 return next(err);
             }
             res.send({
-                code : 1,
+                code : 3,
                 message : "입찰카페 리스트 입니다.",
                 result : results,
                 currentPage : reqData.pageNo
@@ -67,15 +66,67 @@ router.get('/', isAuthenticated, function(req, res, next) {
     }
 });
 
-// 카페 예약하기
+// 예약하기
 router.put('/:proposalId', isAuthenticated, function(req, res, next) {
     var reqData = {};
-    reqData.customerId = req.user.id;
-    reqData.proposalId = req.params.proposalId;
+    reqData.customerId = 1;
+    //reqData.customerId = req.user.id;
+    reqData.proposalId = parseInt(req.params.proposalId || 0 );
     Proposal.doReservation(reqData, function(err, result) {
         if (err) {
             return next(err);
         }
+
+        // 날찰 카페에게 보낼 메세지
+        var messageToBidCafe = new fcm.Message({
+            data: {
+                key1 : JSON.stringify(result.estimateId), // 견적서 id
+                key2 : JSON.stringify(result.reservationInfo), // 예약 정보
+            },
+            notification: {
+                title : '낙찰',
+                icon : '낙찰',
+                body : '낙찰'
+            }
+        });
+
+        // 유찰 카페에게 보낼 메세지
+        var messageToNoBidCafe = new fcm.Message({
+            data: {
+                key1 : JSON.stringify(result.estimateId),
+                key2 : '유찰'
+            },
+            notification: {
+                title : '유찰',
+                icon : '유찰',
+                body : '유찰'
+            }
+        });
+
+        // 낙찰 카페들에게 보낼 샌더
+        var senderToBidCafe = new fcm.Sender(process.env.FCM_KEY);
+
+        // 유찰 카페에게 보낼 샌더
+        var senderToNoBidCafe = new fcm.Sender(process.env.FCM_KEY);
+
+        // 낙찰 카페들에게 send
+        senderToBidCafe.send(messageToBidCafe, {registrationTokens: result.bidCafeFcmTokens}, function(err, response) {
+            if (err) {
+                return next(err);
+            }
+            res.send(response);
+
+            // 유찰 카페들에게 send
+            senderToNoBidCafe.send(messageToNoBidCafe, {registrationTokens: result.noBidCafeFcmTokens}, function(err, response) {
+                if (err) {
+                    return next(err);
+                }
+                res.send({
+                    code : 1,
+                    message : '예약 완료'
+                });
+            });
+        });
     });
 });
 

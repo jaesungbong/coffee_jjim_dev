@@ -6,7 +6,7 @@ var url = require('url');
 var bookmarkObj = {
     getBookmarkCafe : function(reqData, callback) {
         // 이미지가 있는카페 없는카페 모두 가져옴.
-        var sql_select_favorite_cafe = 'SELECT c.id cafeId, c.cafe_name cafeName, c.cafe_address cafeAddress, i.image_name imageUrl, c.wifi, c.days, c.parking, c.socket ' +
+        var sql_select_favorite_cafe = 'SELECT c.id id, c.cafe_name cafeName, c.cafe_address cafeAddress, i.image_name imageUrl, c.wifi, c.days, c.parking, c.socket ' +
             'FROM cafe c JOIN bookmark b ON(c.id = b.cafe_id) ' +
             'LEFT JOIN (SELECT * FROM image WHERE sequence = 1) i ON(c.id = i.cafe_id) ' +
             'WHERE b.customer_id = ? ' +
@@ -37,7 +37,7 @@ var bookmarkObj = {
             if (err) {
                 return callback(err);
             }
-            dbConn.query(sql_insert_bookmark, [reqData.customerId, reqData.cafeId], function(err, results) {
+            dbConn.query(sql_insert_bookmark, [reqData.customerId, reqData.id], function(err, results) {
                 dbConn.release();
                 if (err) {
                     return callback(err);
@@ -54,7 +54,7 @@ var bookmarkObj = {
             if (err) {
                 return callback(err);
             }
-            dbConn.query(sql_delete_bookmark, [reqData.customerId, reqData.cafeId], function(err, results) {
+            dbConn.query(sql_delete_bookmark, [reqData.customerId, reqData.id], function(err, results) {
                 dbConn.release();
                 if (err) {
                     return callback(err);

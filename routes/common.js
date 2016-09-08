@@ -7,7 +7,7 @@ function isAuthenticated(req, res, next) {
   next();
 }
 
-function isSecure(req, res, next) { //https로 들어오지 않으면 돌려보내는 함수
+function isSecure(req, res, next) {
   if (!req.secure) {
     return res.status(426).send({
       message: 'upgrade required!!'

@@ -239,7 +239,7 @@ var UserObj = {
             if (err) {
                 return callback(err);
             }
-            dbConn.query(select_cafe_fcm_token, [cafeId], function(err, results) {
+            dbConn.query(select_cafe_fcm_token, [id], function(err, results) {
                 dbConn.release();
                 if (err) {
                     return callback(err);

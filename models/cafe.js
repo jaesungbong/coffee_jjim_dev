@@ -9,13 +9,13 @@ var CafeObj = {
     findByOwnerLoginId : function(ownerLoginId, callback) {
         // 아이디에 따른 패스워드만 꺼내옴
         var sql_select_password = 'SELECT password ' +
-            'FROM cafe ' +
-            'WHERE owner_login_id = ?';
+                                  'FROM cafe ' +
+                                  'WHERE owner_login_id = ?';
 
         // user 정보를 꺼내옴
-        var sql_select_user = 'SELECT u.id id, type, reg_date, u.fcm_token fcm_token ' +
-            'FROM user u JOIN cafe c ON (u.id = c.user_id) ' +
-            'WHERE c.owner_login_id = ?';
+        var sql_select_user = 'SELECT u.id id, type, reg_date regDate, u.fcm_token fcmToken ' +
+                              'FROM user u JOIN cafe c ON (u.id = c.user_id) ' +
+                              'WHERE c.owner_login_id = ?';
 
         dbPool.getConnection(function(err, dbConn) {
             if (err) {
@@ -28,7 +28,7 @@ var CafeObj = {
                 }
                 if (password.length === 0) {
                     dbConn.release();
-                    return callback(null, null);
+                    return callback(null);
                 }
                 dbConn.query(sql_select_user, [ownerLoginId], function(err, user) {
                     dbConn.release();
@@ -36,7 +36,7 @@ var CafeObj = {
                        return callback(err);
                     }
                     if (user.length === 0) {
-                       return callback(null, null);
+                       return callback(null);
                     }
                     //콜백으로 password 와 user 정보를 넘겨줌
                     callback(null, password[0].password, user[0]);
@@ -81,7 +81,7 @@ var CafeObj = {
         })
     },
     //카페 회원가입
-    registerCafe : function(cafeData, callback) {
+    registerCafe : function(reqData, callback) {
         //user 테이블에 insert
         var sql_insert_user = 'INSERT INTO user(type, fcm_token) ' +
                               'VALUES(1, ?)'; //타입이 0이면 고객, 1이면 카페
@@ -113,19 +113,18 @@ var CafeObj = {
                             dbConn.rollback(function() {
                                 dbConn.release();
                                 callback(err);
-                            })
+                            });
                         }
                         dbConn.commit(function() {
                             dbConn.release();
                             callback(null);
-                        })
-                    })
-                })
+                        });
+                    });
+                });
             }
 
-
             function insertUser(callback) {
-                dbConn.query(sql_insert_user, [cafeData.fcmToken], function(err, result) {
+                dbConn.query(sql_insert_user, [reqData.fcmToken], function(err, result) {
                     if (err) {
                         return callback(err);
                     }
@@ -136,16 +135,16 @@ var CafeObj = {
 
             function insertCafe(userId, callback) {
                 dbConn.query(sql_insert_cafe, [userId,
-                                                cafeData.ownerLoginId,
-                                                cafeData.password,
-                                                cafeData.ownerName,
-                                                cafeData.ownerPhoneNumber,
-                                                cafeData.ownerEmail,
-                                                cafeData.cafeName,
-                                                cafeData.cafePhoneNumber,
-                                                cafeData.cafeAddress,
-                                                cafeData.longitude,
-                                                cafeData.latitude], function (err, results) {
+                    reqData.ownerLoginId,
+                    reqData.password,
+                    reqData.ownerName,
+                    reqData.ownerPhoneNumber,
+                    reqData.ownerEmail,
+                    reqData.cafeName,
+                    reqData.cafePhoneNumber,
+                    reqData.cafeAddress,
+                    reqData.longitude,
+                    reqData.latitude], function (err, results) {
                     if (err) {
                         return callback(err);
                     }
@@ -154,7 +153,7 @@ var CafeObj = {
             }
         });
     },
-    checkId : function(id, callback) {
+    checkId : function(idToCheck, callback) {
         var sql_select_cafe = 'SELECT id ' +
                               'FROM cafe ' +
                               'WHERE owner_login_id = ?';
@@ -162,55 +161,118 @@ var CafeObj = {
             if (err) {
                 return callback(err);
             }
-            dbConn.query(sql_select_cafe, [id], function(err, result) {
+            dbConn.query(sql_select_cafe, [idToCheck], function(err, result) {
                 dbConn.release();
                 if (err) {
                     return callback(err);
                 }
                 if (result.length !== 0) {
-                    return callback(null, '사용불가');
+                    return callback(null, 2, '사용 불가능');
                 }
-                callback(null, '사용가능');
+                callback(null, 1, '사용 가능');
             })
         })
     },
-    editCafe : function(cafeData, callback){
+    editCafe : function(reqData, callback){
+        var sql_select_cafe = 'SELECT cafe_address cafeAddress, business_hour businessHour, y(location) latitude, x(location) longitude, wifi, days, parking, socket ' +
+                              'FROM cafe ' +
+                              'WHERE id = ?';
+
         var sql_update_cafe = 'UPDATE cafe ' +
-                          'SET cafe_address = ?, cafe_phone_number = ?, business_hour = ?, location = point(?, ?), wifi = ?, days = ?, parking = ?, socket = ? ' +
-                          'WHERE id = ?';
+                              'SET cafe_address = ?, cafe_phone_number = ?, business_hour = ?, location = point(?, ?), wifi = ?, days = ?, parking = ?, socket = ? ' +
+                              'WHERE id = ?';
         dbPool.getConnection(function (err, dbConn) {
             if (err) {
                 return callback(err);
             }
-            dbConn.query(sql_update_cafe, [cafeData.cafeAddress, cafeData.cafePhoneNumber, cafeData.businessHour, cafeData.longitude, cafeData.latitude, cafeData.wifi, cafeData.days, cafeData.parking, cafeData.socket, cafeData.id], function(err, result) {
+
+            async.waterfall([getCafeInfo, setCafeInfo], function(err) {
                 dbConn.release();
                 if (err) {
-                    return callback (err);
+                    return callback(err);
                 }
                 callback(null);
-            })
-        })
+            });
+
+            function getCafeInfo(callback) {
+                dbConn.query(sql_select_cafe, [reqData.cafeId], function(err, results) {
+                    if (err) {
+                        return callback (err);
+                    }
+                    var cafeInfo = {};
+                    cafeInfo.cafeAddress = reqData.cafeAddress || results[0].cafeAddress;
+                    cafeInfo.cafePhoneNumber = reqData.cafePhoneNumber || results[0].cafePhoneNumber;
+                    cafeInfo.businessHour = reqData.businessHour || results[0].businessHour;
+                    cafeInfo.latitude = reqData.latitude ||results[0].latitude;
+                    cafeInfo.longitude = reqData.longitude || results[0].longitude;
+                    cafeInfo.wifi = reqData.wifi ||results[0].wifi;
+                    cafeInfo.days = reqData.days || results[0].days;
+                    cafeInfo.parking = reqData.parking || results[0].parking;
+                    cafeInfo.socket = reqData.socket || results[0].socket;
+                    callback(null, cafeInfo);
+                });
+
+            }
+
+            function setCafeInfo(cafeInfo, callback) {
+                dbConn.query(sql_update_cafe, [cafeInfo.cafeAddress, cafeInfo.cafePhoneNumber, cafeInfo.businessHour, cafeInfo.longitude, cafeInfo.latitude, cafeInfo.wifi, cafeInfo.days, cafeInfo.parking, cafeInfo.socket, reqData.cafeId], function(err, result) {
+                    if (err) {
+                        return callback (err);
+                    }
+                    callback(null);
+                });
+            }
+        });
     },
-    editOwner : function(ownerData, callback) {
+    editOwner : function(reqData, callback) {
+        var sql_select_owner = 'SELECT owner_name ownerName, password, owner_phone_number ownerPhoneNumber, owner_email ownerEmail ' +
+                               'FROM cafe ' +
+                               'WHERE id = ?';
+
         var sql_update_owner = 'UPDATE cafe ' +
-            'SET password = sha2( ? ,512), owner_name= ?, owner_phone_number = ?, owner_email = ?' +
-            'WHERE id = ?';
+                               'SET password = sha2( ? ,512), owner_name= ?, owner_phone_number = ?, owner_email = ?' +
+                               'WHERE id = ?';
+
         dbPool.getConnection(function(err, dbConn) {
             if (err) {
                 return callback(err);
             }
-            dbConn.query(sql_update_owner, [ownerData.password, ownerData.ownerName, ownerData.ownerPhoneNumber, ownerData.ownerEmail, ownerData.id], function(err, result) {
+
+            async.waterfall([getOwnerInfo, setOwnerInfo], function(err) {
                 dbConn.release();
                 if (err) {
-                    return callback (err);
+                    return callback(err);
                 }
                 callback(null);
-            })
-        })
+            });
+
+            function getOwnerInfo(callback) {
+                dbConn.query(sql_select_owner, [reqData.cafeId], function(err, results) {
+                    if (err) {
+                        return callback(err);
+                    }
+                    var ownerInfo = {};
+                    ownerInfo.ownerName = reqData.ownerName || results[0].ownerName;
+                    ownerInfo.password = reqData.password || results[0].password;
+                    ownerInfo.ownerPhoneNumber = reqData.ownerPhoneNumber || results[0].ownerPhoneNumber;
+                    ownerInfo.ownerEmail = reqData.ownerEmail || results[0].ownerEmail;
+                    callback(null, ownerInfo);
+                });
+            }
+
+            function setOwnerInfo(ownerInfo, callback) {
+                dbConn.query(sql_update_owner, [ownerInfo.password, ownerInfo.ownerName, ownerInfo.ownerPhoneNumber, ownerInfo.ownerEmail, reqData.cafeId], function(err, result) {
+                    if (err) {
+                        return callback(err);
+                    }
+                    callback(null);
+                });
+            }
+        });
     },
     getCafeInfo : function(cafeId, callback) {
         // 이미지를 제외한 카페들의 정보를 가져오는 sql
-        var sql_select_cafe = 'SELECT id cafeId, cafe_name cafeName, cafe_address cafeAddress, cafe_phone_number cafePhoneNumber, business_hour businessHour, wifi, days, parking, socket, y(location) latitude, x(location) longitude ' +
+        var sql_select_cafe = 'SELECT id id, cafe_name cafeName, cafe_address cafeAddress, cafe_phone_number cafePhoneNumber, business_hour businessHour, wifi, days, parking, socket, y(location) latitude, x(location) longitude ' +
                               'FROM cafe ' +
                               'WHERE id = ?';
 
@@ -274,7 +336,7 @@ var CafeObj = {
     },
     getAllCafe : function(reqData, callback) {
         //모든 카페 정보들과 각 카페의 대표 이미지를 거리순으로 뽑는 sql
-        var sql_select_cafe = 'SELECT c.id cafeId, c.cafe_name cafeName, c.cafe_address cafeAddress, c.wifi, c.days, c.parking, c.socket, y(location) latitude, x(location) longitude, i.image_name imageUrl, ' +
+        var sql_select_cafe = 'SELECT c.id id, c.cafe_name cafeName, c.cafe_address cafeAddress, c.wifi, c.days, c.parking, c.socket, y(location) latitude, x(location) longitude, i.image_name imageUrl, ' +
                                     'round(6371 * acos(cos(radians(?)) * cos(radians(y(location))) * cos(radians(x(location)) - radians(?)) + sin(radians(?)) * sin(radians(y(location)))), 2) AS distance ' +
                               'FROM cafe c LEFT JOIN (SELECT * ' +
                                                      'FROM image ' +
@@ -303,7 +365,7 @@ var CafeObj = {
     },
     getKeyWordCafe : function(reqData, callback){
         //키워드로 검색된 카페 정보들과 각 카페의 대표 이미지를 거리순으로 뽑는 sql
-        var sql_select_cafes = 'SELECT c.id cafeId, c.cafe_name cafeName, c.cafe_address cafeAddress, c.wifi, c.days, c.parking, c.socket, y(location) latitude, x(location) longitude, i.image_name imageUrl, ' +
+        var sql_select_cafes = 'SELECT c.id id, c.cafe_name cafeName, c.cafe_address cafeAddress, c.wifi, c.days, c.parking, c.socket, y(location) latitude, x(location) longitude, i.image_name imageUrl, ' +
                                        'round(6371 * acos(cos(radians(?)) * cos(radians(y(location))) * cos(radians(x(location)) - radians(?)) + sin(radians(?)) * sin(radians(y(location)))), 2) AS distance ' +
                                'FROM cafe c LEFT JOIN (SELECT * ' +
                                                       'FROM image ' +
@@ -332,7 +394,7 @@ var CafeObj = {
         })
     },
     getBest5Cafe : function(callback) {
-        var sql_select_best5_cafe = 'SELECT c.id cafeId, i.image_name imageUrl ' +
+        var sql_select_best5_cafe = 'SELECT c.id id, i.image_name imageUrl ' +
                                     'FROM bookmark b JOIN cafe c ON (c.id = b.cafe_id) ' +
                                                     'JOIN image i ON (c.id = i.cafe_id) ' +
                                     'WHERE i.sequence = 1 ' +
@@ -358,7 +420,7 @@ var CafeObj = {
         })
     },
     getNewCafe : function(callback) {
-        var sql_select_new_cafe = 'SELECT c.id cafeId, i.image_name imageUrl ' +
+        var sql_select_new_cafe = 'SELECT c.id id, i.image_name imageUrl ' +
                                   'FROM user u JOIN cafe c ON (u.id = c.user_id) ' +
                                               'JOIN image i ON (i.cafe_id = c.id) ' +
                                   'WHERE SUBDATE(now(), INTERVAL 30 DAY) < reg_date ' +
@@ -383,6 +445,23 @@ var CafeObj = {
             })
         })
     },
+    getOwnerInfo : function(cafeId, callback) {
+        var sql_select_owner_info = 'SELECT owner_name ownerName, owner_phone_number ownerPhoneNumber, owner_email ownerEmail ' +
+                                    'FROM cafe ' +
+                                    'WHERE id = ?';
+        dbPool.getConnection(function (err, dbConn) {
+            if (err) {
+                return callback(err);
+            }
+            dbConn.query(sql_select_owner_info, [cafeId], function(err, results) {
+                dbConn.release();
+                if (err) {
+                    return callback(err);
+                }
+                callback(null, results[0]);
+            })
+        })
+    }
 };
 
 module.exports = CafeObj;

@@ -33,7 +33,7 @@ router.post('/', isSecure, function(req, res, next) {
     });
 });
 
-// 카페 보기
+// 모든 & 검색 카페 목록
 router.get('/', isAuthenticated, function(req, res, next) {
     var keyword = req.query.keyword;
     var reqData = {};
@@ -49,8 +49,9 @@ router.get('/', isAuthenticated, function(req, res, next) {
                 return next(err);
             }
             res.send({
+                code : 1,
                 message : '검색 카페 입니다.',
-                data : results,
+                result : results,
                 currentPage : req.query.pageNo
             });
         });
@@ -65,8 +66,9 @@ router.get('/', isAuthenticated, function(req, res, next) {
                 return next(err);
             }
             res.send({
+                code : 1,
                 message : '모든 카페 입니다.',
-                data : results,
+                result : results,
                 currentPage : req.query.pageNo
             });
         });
@@ -75,13 +77,14 @@ router.get('/', isAuthenticated, function(req, res, next) {
 
 //ID 중복확인
 router.get('/checkid', function(req, res, next) {
-    var id = req.query.ownerLoginId || 0 ;
-    Cafe.checkId(id, function(err, result) {
+    var idToCheck = req.query.ownerLoginId || 0 ;
+    Cafe.checkId(idToCheck, function(err, result, message) {
         if (err) {
             return next(err)
         }
         res.send({
-            message: result
+            code : result,
+            message : message
         });
     });
 });
@@ -91,59 +94,72 @@ router.get('/best5', isAuthenticated, function(req, res, next) {
     Cafe.getBest5Cafe(function (err, results) {
         res.send({
             message : 'best5 카페 입니다.',
-            data : results
+            result : results
         });
     });
 });
 
-
-// 새로운 카페 목록 5개 조회
+// 뉴 카페 목록
 router.get('/new5', isAuthenticated, function(req, res, next) {
     Cafe.getNewCafe(function (err, results) {
         res.send({
             message : 'new 카페 입니다.',
-            data : results
+            result : results
         });
     });
 });
 
-
-//자기 카페 보기
-router.get('/me', isAuthenticated, function(req, res, next) {
-    Cafe.getCafeInfo(req.user.id, function(err, result) {
-        if (err) {
-            return next(err);
-        }
-        res.send({
-            message : '카페 정보 입니다.',
-            data : result
+//자기 카페&정보 보기
+router.get('/me', isSecure, isAuthenticated, function(req, res, next) {
+    var type = parseInt(req.query.type || 2);
+    if ( type === 2 ) {
+        return next(new Error('카페 정보 보기 타입은 0 점주 정보 보기 타입은 1 입니다.'));
+    } else if (type === 0) {
+        Cafe.getCafeInfo(req.user.id, function(err, result) {
+            if (err) {
+                return next(err);
+            }
+            res.send({
+                code : 1,
+                message: '카페 정보 입니다.',
+                result : result
+            });
         });
-    });
+    } else if (type === 1) {
+        Cafe.getOwnerInfo(req.user.id, function(err, result) {
+            if (err) {
+                return next(err);
+            }
+            res.send({
+                code : 1,
+                message : '점주 정보 입니다.',
+                result : result
+            })
+        });
+    }
 });
-
 
 // 카페 상세보기
-router.get('/:cafeId', isAuthenticated, function(req, res, next) {
-    Cafe.getCafeInfo(req.params.cafeId, function(err, result) {
+router.get('/:id', isAuthenticated, function(req, res, next) {
+    Cafe.getCafeInfo(req.params.id, function(err, result) {
         if (err) {
             return next(err);
         }
         res.send({
             message : '카페 정보 입니다.',
-            data : result
+            result : result
         });
     });
 });
 
-
-//카페 정보 수정
+// 카페 & 점주 정보 수정
 router.put('/me', isSecure, isAuthenticated, function(req, res, next) {
-    var type = parseInt(req.body.type || 2);
+    var type = parseInt(req.body.type || 3);
     if (type === 2) {
         return next(new Error('카페 정보수정의 타입은 0 점주 정보 수정 타입은 1 입니다.'));
     } else if (type === 0) { // 카페 정보 수정
         var reqData= {};
-        reqData.id = req.user.id;
+        reqData.cafeId = req.user.id;
         reqData.cafeAddress = req.body.cafeAddress;
         reqData.cafePhoneNumber = req.body.cafePhoneNumber;
         reqData.businessHour = req.body.businessHour;
@@ -158,12 +174,13 @@ router.put('/me', isSecure, isAuthenticated, function(req, res, next) {
                 return next(err);
             }
             res.send({
+                code : 1,
                 message : '카페 정보 변경 완료'
             })
         });
     } else if (type === 1) { //점주 정보 수정
         var reqData = {};
-        reqData.id = req.user.id;
+        reqData.cafeId = req.user.id;
         reqData.ownerName = req.body.ownerName;
         reqData.password = req.body.password;
         reqData.ownerPhoneNumber = req.body.ownerPhoneNumber;
@@ -173,9 +190,12 @@ router.put('/me', isSecure, isAuthenticated, function(req, res, next) {
                 return next(err);
             }
             res.send({
-               message : '점주 정보 변경 완료'
+                code : 1,
+                message : '점주 정보 변경 완료'
             });
         });
+    } else if (type === 3) {
+        // 임시 비밀번호 발급
     }
 });
 
