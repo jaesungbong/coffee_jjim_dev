@@ -23,7 +23,7 @@ var CustomerObj = {
     },
     // 방문한 고객 보기
     getVisitedCustomer : function(reqData, callback) {
-       var select_visited_customer = 'SELECT c.id customerId, c.nickname, count(*) visitTime, e.reservation_time reservationTime, e.people, e.wifi, e.days, e.parking, e.socket, p.bid_price bidPrice, b.cafe_id bookmark ' +
+       var select_visited_customer = 'SELECT c.id customerId, c.nickname, count(*) visitTime, DATE_FORMAT(CONVERT_TZ(e.reservation_time, \'+00:00\', \'+09:00\'), \'%Y-%m-%d %H:%m:%s\') reservationTime, e.people, e.wifi, e.days, e.parking, e.socket, p.bid_price bidPrice, b.cafe_id bookmark ' +
                                      'FROM customer c JOIN estimate e ON (c.id = e.customer_id) ' +
                                                      'JOIN proposal p ON (e.id = p.estimate_id) ' +
                                                      'JOIN cafe cf ON (p.cafe_id = cf.id) ' +
