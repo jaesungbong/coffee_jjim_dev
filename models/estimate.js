@@ -200,13 +200,12 @@ var estimateObj = {
             if (err) {
                 return callback(err);
             }
-            dbConn.query(sql_update_estimate_end, function(err, result) {
+            dbConn.query(sql_update_estimate_end, [estimateId], function(err, results) {
                 dbConn.release();
                 if (err) {
                     return callback(err);
-
                 }
-                callback(null);
+                callback(null, results.changedRows);
             })
         })
     },

@@ -25,7 +25,6 @@ router.post('/', isAuthenticated, function(req, res, next) {
         if (err) {
             return next(err);
         }
-
         // 견적서가 도착할 카페들에게 보낼 메세지
         var messageToCafe = new fcm.Message({
             data: {
@@ -73,7 +72,8 @@ router.post('/', isAuthenticated, function(req, res, next) {
             }
             res.send({
                 code : 1,
-                message : '견적 요청 완료'
+                message : '견적 요청 완료',
+                response : response
             });
 
             var timeZone = "Asia/Seoul";
@@ -89,11 +89,15 @@ router.post('/', isAuthenticated, function(req, res, next) {
             var job = new CronJob(cronTime, function() {
                 // 자신에게 send
                 senderToMe.send(messageToMe, {registrationTokens : result.myToken}, function(err, response) {
+                    if (err) {
+                        return console.log('senderToMe err : ' + err);
+                    }
+                    console.log('senderToMe response : ' + response);
                     Estimate.endAuction(result.estimateId, function(err, result) {
                         if (err) {
-                            return next(err);
+                            return console.log('endAuction err : ' + err);
                         }
-                        res.send(response);
+                        console.log('endAuction response : ' + result);
                     });
                 });
                 job.stop();

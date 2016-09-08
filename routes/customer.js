@@ -36,8 +36,8 @@ router.get('/', isAuthenticated, function(req, res, next) {
             message : '고객 관리 목록입니다.',
             result : results,
             currentPage : reqData.pageNo
-        })
-    })
+        });
+    });
 });
 
 module.exports = router;
