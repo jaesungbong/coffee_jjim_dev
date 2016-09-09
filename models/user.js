@@ -16,6 +16,7 @@ var UserObj = {
 
         var user = {};
 
+        dbPool.logStatus();
         dbPool.getConnection(function (err, dbConn) {
             if (err) {
                 return callback(err);
@@ -23,11 +24,13 @@ var UserObj = {
             dbConn.query(sql_find_user, [id], function (err, result) {
                 if (err) {
                     dbConn.release();
+                    dbPool.logStatus();
                     return callback(err);
                 }
                 if (result[0].type === 0) { //고객
                     findCustomer(function(err, customer) {
                         dbConn.release();
+                        dbPool.logStatus();
                         if (err) {
                             return callback(err);
                         }
@@ -37,6 +40,7 @@ var UserObj = {
                 } else { //카페
                     findCafe(function(err, cafe) {
                         dbConn.release();
+                        dbPool.logStatus();
                         if (err) {
                             return callback(err);
                         }
@@ -103,6 +107,7 @@ var UserObj = {
                                                      'FROM customer ' +
                                                      'WHERE id = ?';
 
+        dbPool.logStatus();
         dbPool.getConnection(function(err, dbConn) {
            if (err) {
                return callback(err);
@@ -110,12 +115,14 @@ var UserObj = {
            dbConn.query(sql_select_owner_login_id, [id], function(err, results) {
                 if (err) {
                     dbConn.release();
+                    dbPool.logStatus();
                     return callback(err);
                 }
                 console.log(results);
                 if(results[0].length !== 0) { //카페일 경우
                     getCafeAuctionRange(id, function(err, result) {
                         dbConn.release();
+                        dbPool.logStatus();
                         if (err) {
                             return callback(err);
                         }
@@ -124,6 +131,7 @@ var UserObj = {
                 } else { //고객일 경우
                     getCustomerAuctionRange(id, function(err, result) {
                         dbConn.release();
+                        dbPool.logStatus();
                         if (err) {
                             return callback(err);
                         }
@@ -165,6 +173,7 @@ var UserObj = {
                                                'SET auction_range = ? ' +
                                                'WHERE id = ?';
 
+        dbPool.logStatus();
         dbPool.getConnection(function(err, dbConn) {
             if (err) {
                 return callback(err);
@@ -172,11 +181,13 @@ var UserObj = {
             dbConn.query(sql_select_owner_login_id, [reqData.id], function(err, results) {
                 if (err) {
                     dbConn.release();
+                    dbPool.logStatus();
                     return callback(err);
                 }
                 if(results[0].length !== 0) { //카페일 경우
                     setCafeAuctionRange(reqData, function(err, result) {
                         dbConn.release();
+                        dbPool.logStatus();
                         if (err) {
                             return callback(err);
                         }
@@ -185,6 +196,7 @@ var UserObj = {
                 } else { //고객일 경우
                     setCustomerAuctionRange(reqData, function(err, result) {
                         dbConn.release();
+                        dbPool.logStatus();
                         if (err) {
                             return callback(err);
                         }
@@ -218,12 +230,14 @@ var UserObj = {
                                         'FROM estimate e JOIN customer c ON (e.customer_id = c.id) ' +
                                         'JOIN user u ON (c.user_id = u.id) ' +
                                         'WHERE e.id = ?';
+        dbPool.logStatus();
         dbPool.getConnection(function(err, dbConn) {
             if (err) {
                 return callback(err);
             }
             dbConn.query(select_customer_fcm_token, [estimateId], function(err, results) {
                 dbConn.release();
+                dbPool.logStatus();
                 if (err) {
                     return callback(err);
                 }

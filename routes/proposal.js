@@ -3,9 +3,16 @@ var router = express.Router();
 var isAuthenticated = require('./common').isAuthenticated;
 var Proposal = require('../models/proposal');
 var fcm = require('node-gcm');
+var logger = require('../config/logger');
 
 // 입찰하기
 router.post('/', isAuthenticated, function(req, res, next) {
+    logger.log('debug', '-------------- proposal --------------');
+    logger.log('debug', '%s %s://%s%s', req.method, req.protocol, req.headers['host'], req.originalUrl);
+    logger.log('debug', 'baseUrl: %s', req.baseUrl);
+    logger.log('debug', 'url: %s', req.url);
+    logger.log('debug', 'query: %j', req.query, {});
+    logger.log('debug', 'range: %s', req.headers['range']);
     var reqData = {};
     reqData.id = req.user.id;
     reqData.estimateId = parseInt(req.body.estimateId || 0);
@@ -33,19 +40,26 @@ router.post('/', isAuthenticated, function(req, res, next) {
 
         senderToCustomer.send(messageToCustomer, {registrationTokens : result.customerFcmToken}, function(err, response) {
             if (err) {
-                return next(err);
+                logger.log('debug', 'send to customer err : %j', err, {});
             }
-
             res.send(response, {
                 code : 1,
                 message : '입찰 완료'
             });
+            logger.log('debug', 'send to customer response : %j', response, {});
+            logger.log('debug', '-------------- proposal completed --------------');
         });
     });
 });
 
 // 입찰카페 목록
 router.get('/', isAuthenticated, function(req, res, next) {
+    logger.log('debug', '-------------- proposal cafe list --------------');
+    logger.log('debug', '%s %s://%s%s', req.method, req.protocol, req.headers['host'], req.originalUrl);
+    logger.log('debug', 'baseUrl: %s', req.baseUrl);
+    logger.log('debug', 'url: %s', req.url);
+    logger.log('debug', 'query: %j', req.query, {});
+    logger.log('debug', 'range: %s', req.headers['range']);
     if(req.url.match(/\/?pageNo=\d+&rowCount=\d+/i)){
         var reqData = {};
         reqData.customerId = 1;
@@ -62,12 +76,19 @@ router.get('/', isAuthenticated, function(req, res, next) {
                 result : results,
                 currentPage : reqData.pageNo
             });
+            logger.log('debug', '-------------- proposal cafe list completed --------------');
         });
     }
 });
 
 // 예약하기
 router.put('/:proposalId', isAuthenticated, function(req, res, next) {
+    logger.log('debug', '-------------- cafe reservation --------------');
+    logger.log('debug', '%s %s://%s%s', req.method, req.protocol, req.headers['host'], req.originalUrl);
+    logger.log('debug', 'baseUrl: %s', req.baseUrl);
+    logger.log('debug', 'url: %s', req.url);
+    logger.log('debug', 'query: %j', req.query, {});
+    logger.log('debug', 'range: %s', req.headers['range']);
     var reqData = {};
     reqData.customerId = 1;
     //reqData.customerId = req.user.id;
@@ -112,19 +133,22 @@ router.put('/:proposalId', isAuthenticated, function(req, res, next) {
         // 낙찰 카페들에게 send
         senderToBidCafe.send(messageToBidCafe, {registrationTokens: result.bidCafeFcmTokens}, function(err, response) {
             if (err) {
-                return next(err);
+                logger.log('debug', 'send to bid cafe err : &j', err, {});
             }
-            res.send(response);
+            logger.log('debug', 'send to bid cafe response : &j', response, {});
 
             // 유찰 카페들에게 send
             senderToNoBidCafe.send(messageToNoBidCafe, {registrationTokens: result.noBidCafeFcmTokens}, function(err, response) {
                 if (err) {
-                    return next(err);
+                    logger.log('debug', 'send to no bid cafe err : &j', err, {});
                 }
                 res.send({
                     code : 1,
                     message : '예약 완료'
                 });
+                logger.log('debug', 'send to no bid cafe response : &j', response, {});
+                logger.log('debug', 'send to no bid cafe completed');
+                logger.log('debug', '-------------- cafe reservation completed --------------');
             });
         });
     });

@@ -24,14 +24,16 @@ var imageObj = {
         var sql_delete_image = 'DELETE FROM image ' +
             'WHERE cafe_id = ? AND sequence = ?';
 
+        dbPool.logStatus();
         dbPool.getConnection(function (err, dbConn) {
             if (err) {
                 return callback(err);
             }
             // 이미지 파일이 있는지 없는지 검사
-            dbConn.query(sql_select_image, [id, sequence], function (err, results) {
+            dbConn.query(sql_select_image, [cafeId, sequence], function (err, results) {
                 if (err) {
                     dbConn.release();
+                    dbPool.logStatus();
                     return callback(err);
                 }
                 //해당 이미지 파일이 있으므로 update
@@ -39,9 +41,11 @@ var imageObj = {
                     updateImage(function (err) {
                         if (err) {
                             dbConn.release();
+                            dbPool.logStatus();
                             return callback(err);
                         } else {
                             dbConn.release();
+                            dbPool.logStatus();
                             callback(null);
                         }
                     });
@@ -49,9 +53,11 @@ var imageObj = {
                     insertImage(function (err) {
                         if (err) {
                             dbConn.release();
+                            dbPool.logStatus();
                             return callback(err);
                         } else {
                             dbConn.release();
+                            dbPool.logStatus();
                             callback(null);
                         }
                     });
@@ -59,7 +65,7 @@ var imageObj = {
             });
 
             function insertImage(callback) {
-                dbConn.query(sql_insert_image, [id, sequence, path.basename(destImagePath), destImagePath], function(err, result) {
+                dbConn.query(sql_insert_image, [cafeId, sequence, path.basename(destImagePath), destImagePath], function(err, result) {
                     if (err) {
                         return callback (err);
                     }
@@ -84,18 +90,8 @@ var imageObj = {
                     });
                 })
             }
-
-            function deleteImage(callback) {
-                dbConn.query(sql_delete_image, [id, sequence], function(err, result) {
-                    if (err) {
-                        return callback (err);
-                    }
-                    callback(null);
-                })
-            }
-
             function deleteRealImage(callback) {
-                dbConn.query(sql_select_imagepath, [id, sequence], function(err, result) {
+                dbConn.query(sql_select_imagepath, [cafeId, sequence], function(err, result) {
                     if (err) {
                         return callback (err);
                     }
@@ -106,6 +102,15 @@ var imageObj = {
                         callback(null);
                     });
                 });
+            }
+
+            function deleteImage(callback) {
+                dbConn.query(sql_delete_image, [cafeId, sequence], function(err, result) {
+                    if (err) {
+                        return callback (err);
+                    }
+                    callback(null);
+                })
             }
         });
     }

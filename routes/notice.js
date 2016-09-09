@@ -2,7 +2,9 @@ var express = require('express');
 var router = express.Router();
 var isAuthenticated = require('./common').isAuthenticated;
 var Notice = require('../models/notice');
+var logger = require('../config/logger');
 
+// 공지사항
 router.get('/', isAuthenticated, function(req, res, next) {
     if(req.url.match(/\/?pageNo=\d+&rowCount=\d+/i)) {
         var reqData = {};

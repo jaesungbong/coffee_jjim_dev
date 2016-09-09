@@ -3,8 +3,16 @@ var router = express.Router();
 var isSecure = require('./common').isSecure;
 var isAuthenticated = require('./common').isAuthenticated;
 var User = require('../models/user');
+var logger = require('../config/logger');
 
+// 역경매 허용 범위 보기
 router.get('/me', isAuthenticated, function(req, res, next) {
+    logger.log('debug', '-------------- get auction range --------------');
+    logger.log('debug', '%s %s://%s%s', req.method, req.protocol, req.headers['host'], req.originalUrl);
+    logger.log('debug', 'baseUrl: %s', req.baseUrl);
+    logger.log('debug', 'url: %s', req.url);
+    logger.log('debug', 'query: %j', req.query, {});
+    logger.log('debug', 'range: %s', req.headers['range']);
     var id = req.user.id;
     User.getAuctionRange(id, function(err, result) {
         if (err) {
@@ -15,10 +23,18 @@ router.get('/me', isAuthenticated, function(req, res, next) {
             message : "역경매 범위 입니다.",
             data : result
         });
+        logger.log('debug', '-------------- get auction range completed --------------');
     });
 });
 
+// 역경매 허용 범위 변경
 router.put('/me', isAuthenticated, function(req, res, next) {
+    logger.log('debug', '-------------- edit auction range --------------');
+    logger.log('debug', '%s %s://%s%s', req.method, req.protocol, req.headers['host'], req.originalUrl);
+    logger.log('debug', 'baseUrl: %s', req.baseUrl);
+    logger.log('debug', 'url: %s', req.url);
+    logger.log('debug', 'query: %j', req.query, {});
+    logger.log('debug', 'range: %s', req.headers['range']);
     var reqData = {};
     reqData.id = req.user.id;
     reqData.auctionRange = parseInt(req.body.auctionRange || 1);
@@ -30,6 +46,7 @@ router.put('/me', isAuthenticated, function(req, res, next) {
             code : 1,
             message : "역경매 범위 변경 완료.",
         });
+        logger.log('debug', '-------------- edit auction range completed --------------');
     });
 });
 

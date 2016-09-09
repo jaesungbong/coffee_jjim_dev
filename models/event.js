@@ -17,12 +17,14 @@ var eventObj = {
             'ORDER BY rand() ' +
             'LIMIT 5';
 
+        dbPool.logStatus();
         dbPool.getConnection(function (err, dbConn) {
             if (err) {
                 return callback(err);
             }
             dbConn.query(sql_get_events, [], function(err, results) {
                 dbConn.release();
+                dbPool.logStatus();
                 if (err) {
                     return callback(err);
                 }

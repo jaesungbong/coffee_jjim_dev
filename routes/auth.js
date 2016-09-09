@@ -2,13 +2,12 @@ var express = require('express');
 var router = express.Router();
 var passport = require('passport');
 var LocalStrategy = require('passport-local').Strategy;
-var FacebookTokenStrategy = require('passport-facebook-token');
 var Cafe = require('../models/cafe');
 var User = require('../models/user');
-var Customer = require('../models/customer');
 var isSecure = require('./common').isSecure;
 var isAuthenticated = require('./common').isAuthenticated;
 var KakaoStrategy = require('passport-kakao').Strategy;
+var logger = require('../config/logger');
 
 // 카페 로그인 strategy
 passport.use(new LocalStrategy({usernameField: 'ownerLoginId', passwordField: 'password'}, function(ownerLoginId, password, done) {
@@ -31,19 +30,6 @@ passport.use(new LocalStrategy({usernameField: 'ownerLoginId', passwordField: 'p
     })
 }));
 
-
-passport.use(new FacebookTokenStrategy({
-    clientID: process.env.FACEBOOK_APP_ID,
-    clientSecret: process.env.FACEBOOK_APP_SECRET
-}, function(accessToken, refreshToken, profile, done) {
-    Customer.findOrCreate(profile, function (err, user) {
-        if (err) {
-            return done(err);
-        }
-        return done(null, user);
-    });
-}));
-
 passport.serializeUser(function(user, done) {
     done(null, user.id);
 });
@@ -57,7 +43,15 @@ passport.deserializeUser(function(id, done) {
     });
 });
 
+// 카페 로그인
 router.post('/local/login', isSecure, function(req, res, next) {
+    //로그인 로거
+    logger.log('debug', '-------------- cafe login --------------');
+    logger.log('debug', '%s %s://%s%s', req.method, req.protocol, req.headers['host'], req.originalUrl);
+    logger.log('debug', 'baseUrl: %s', req.baseUrl);
+    logger.log('debug', 'url: %s', req.url);
+    logger.log('debug', 'query: %j', req.query, {});
+    logger.log('debug', 'range: %s', req.headers['range']);
     passport.authenticate('local', function(err, user) {
         if (err) {
             return next(err);
@@ -86,17 +80,21 @@ router.post('/local/login', isSecure, function(req, res, next) {
             code : 1,
             message: '로그인 OK!'
         });
+        logger.log('debug', '-------------- login completed --------------');
     });
 });
 
 //로그아웃
 router.get('/local/logout', isAuthenticated, function(req, res, next) {
+    logger.log('debug', '-------------- logout --------------');
+    logger.log('debug', '%s %s://%s%s', req.method, req.protocol, req.headers['host'], req.originalUrl);
+    logger.log('debug', 'baseUrl: %s', req.baseUrl);
+    logger.log('debug', 'url: %s', req.url);
+    logger.log('debug', 'query: %j', req.query, {});
+    logger.log('debug', 'range: %s', req.headers['range']);
     req.logout();
     res.send({ message: '로그아웃!' });
-});
-
-router.post('/kakaotalk/token', isSecure, passport.authenticate('facebook-token', {scope : ['email']}), function(req, res, next) {
-    res.send(req.user? '페이스북 로그인' : '실패');
+    logger.log('debug', '-------------- logout completed --------------');
 });
 
 module.exports = router;

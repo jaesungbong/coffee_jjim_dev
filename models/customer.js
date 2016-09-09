@@ -8,12 +8,14 @@ var CustomerObj = {
         var sql_update_phone_number = 'UPDATE customer ' +
                                       'SET phone_number = ? ' +
                                       'WHERE id = ?';
+        dbPool.logStatus();
         dbPool.getConnection(function(err, dbConn) {
            if (err) {
                return callback(err);
            }
            dbConn.query(sql_update_phone_number, [reqData.phoneNumber, reqData.customerId], function(err, results) {
                dbConn.release();
+               dbPool.logStatus();
                if (err) {
                    return callback(err);
                }
@@ -32,12 +34,14 @@ var CustomerObj = {
                                      'GROUP BY e.customer_id ' +
                                      'ORDER BY e.reservation_time DESC ' +
                                      'LIMIT ?, ?';
+        dbPool.logStatus();
         dbPool.getConnection(function(err, dbConn) {
             if (err) {
                 return callback(err);
             }
             dbConn.query(select_visited_customer, [reqData.cafeId, reqData.rowCount * (reqData.pageNo - 1), reqData.rowCount], function(err, results) {
                 dbConn.release();
+                dbPool.logStatus();
                 if (err) {
                     return callback(err);
                 }

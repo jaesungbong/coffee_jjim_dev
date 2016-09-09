@@ -6,9 +6,16 @@ var isAuthenticated = require('./common').isAuthenticated;
 var isSecure = require('./common').isSecure;
 var CronJob = require('cron').CronJob;
 var moment = require('moment-timezone');
+var logger = require('../config/logger');
 
 // 견적서 작성
 router.post('/', isAuthenticated, function(req, res, next) {
+    logger.log('debug', '-------------- estimate request --------------');
+    logger.log('debug', '%s %s://%s%s', req.method, req.protocol, req.headers['host'], req.originalUrl);
+    logger.log('debug', 'baseUrl: %s', req.baseUrl);
+    logger.log('debug', 'url: %s', req.url);
+    logger.log('debug', 'query: %j', req.query, {});
+    logger.log('debug', 'range: %s', req.headers['range']);
     var estimateData={};
     var customerId = 1;
     estimateData.customerId = customerId;
@@ -42,7 +49,7 @@ router.post('/', isAuthenticated, function(req, res, next) {
             },
             notification: {
                 title : '견적서 도착',
-                icon : '견적서 도착',
+                icon : 'ic-launcher',
                 body : '견적서 도착'
             }
         });
@@ -54,7 +61,7 @@ router.post('/', isAuthenticated, function(req, res, next) {
             },
             notification : {
                 title : '경매 종료',
-                icon : '경매 종료',
+                icon : 'ic-launcher',
                 body : '경매 종료'
             }
         });
@@ -68,13 +75,14 @@ router.post('/', isAuthenticated, function(req, res, next) {
         // 카페들에게 send
         senderToCafe.send(messageToCafe, {registrationTokens: result.cafeFcmToken}, function(err, response) {
             if (err) {
-                return next(err);
+                logger.log('debug', 'send to cafe err : %j', err, {});
             }
             res.send({
                 code : 1,
                 message : '견적 요청 완료',
-                response : response
             });
+            logger.log('debug', 'send to cafe response : %j', response, {});
+            logger.log('debug', 'send to cafe completed');
 
             var timeZone = "Asia/Seoul";
             var future = moment().tz(timeZone).add(estimateData.auctionTime, 'm');
@@ -90,14 +98,16 @@ router.post('/', isAuthenticated, function(req, res, next) {
                 // 자신에게 send
                 senderToMe.send(messageToMe, {registrationTokens : result.myToken}, function(err, response) {
                     if (err) {
-                        return console.log('senderToMe err : ' + err);
+                        logger.log('debug', 'sender to me err : %j', err, {});
                     }
-                    console.log('senderToMe response : ' + response);
+                    logger.log('debug', 'sender to me response : %j', response, {});
                     Estimate.endAuction(result.estimateId, function(err, result) {
                         if (err) {
-                            return console.log('endAuction err : ' + err);
+                            logger.log('debug', 'end auction err : %j', err, {});
                         }
-                        console.log('endAuction response : ' + result);
+                        logger.log('debug', 'end auction result : %s', result, {});
+                        logger.log('debug', 'send to me completed');
+                        logger.log('debug', '-------------- estimate request completed --------------');
                     });
                 });
                 job.stop();
@@ -110,12 +120,18 @@ router.post('/', isAuthenticated, function(req, res, next) {
 
 // 예약현황
 router.get('/booked', isSecure, isAuthenticated, function(req, res, next) {
+    logger.log('debug', '-------------- customer & cafe reservation list --------------');
+    logger.log('debug', '%s %s://%s%s', req.method, req.protocol, req.headers['host'], req.originalUrl);
+    logger.log('debug', 'baseUrl: %s', req.baseUrl);
+    logger.log('debug', 'url: %s', req.url);
+    logger.log('debug', 'query: %j', req.query, {});
+    logger.log('debug', 'range: %s', req.headers['range']);
     var timeZone = "Asia/Seoul";
     var present = moment().tz(timeZone);
     if(req.url.match(/\/?type=\d+&year=\d+&month=\d+/i)) {
         var reqData = {};
         reqData.type = parseInt(req.query.type);
-        reqData.year = parseInt(req.query.year || present.year() + 1);
+        reqData.year = parseInt(req.query.year || present.year());
         reqData.month = parseInt(req.query.month || (present.month() + 1));
         if (reqData.type === 0) { //고객용
             reqData.customerId = 1;
@@ -131,6 +147,7 @@ router.get('/booked', isSecure, isAuthenticated, function(req, res, next) {
                     currentYear : reqData.year,
                     currentMonth : reqData.month
                 });
+                logger.log('debug', '-------------- customer reservation list --------------');
             });
         } else if (reqData.type === 1) { //점주용
             reqData.cafeId = req.user.id;
@@ -145,6 +162,7 @@ router.get('/booked', isSecure, isAuthenticated, function(req, res, next) {
                     currentYear : reqData.year,
                     currentMonth : reqData.month
                 });
+                logger.log('debug', '-------------- cafe reservation list --------------');
             })
         } else {
             return next(new Error('타입은 0 또는 1 입니다.'));
@@ -154,6 +172,12 @@ router.get('/booked', isSecure, isAuthenticated, function(req, res, next) {
 
 // 견적서 목록
 router.get('/', isAuthenticated, function(req, res, next) {
+    logger.log('debug', '-------------- estimate list --------------');
+    logger.log('debug', '%s %s://%s%s', req.method, req.protocol, req.headers['host'], req.originalUrl);
+    logger.log('debug', 'baseUrl: %s', req.baseUrl);
+    logger.log('debug', 'url: %s', req.url);
+    logger.log('debug', 'query: %j', req.query, {});
+    logger.log('debug', 'range: %s', req.headers['range']);
     if(req.url.match(/\/?pageNo=\d+&rowCount=\d+/i)) {
         var reqData = {};
         reqData.id = parseInt(req.user.id || 0);
@@ -169,6 +193,7 @@ router.get('/', isAuthenticated, function(req, res, next) {
                 data: results,
                 currentPage: reqData.pageNo
             });
+            logger.log('debug', '-------------- estimate list completed --------------');
         });
     }
 });

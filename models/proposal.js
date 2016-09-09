@@ -23,6 +23,7 @@ var objProposal = {
                                   'VALUES(?, ?, ?)';
         var fcmData = {};
 
+        dbPool.logStatus();
         dbPool.getConnection(function(err, dbConn) {
             if (err) {
                 return callback(err);
@@ -31,12 +32,12 @@ var objProposal = {
 
             async.series([checkDelivered, checkProposaled, setProposal, getProposalInfo], function (err, results) {
                 dbConn.release();
+                dbPool.logStatus();
                 if (err) {
                         return callback(err);
                 }
                 callback(null, fcmData);
             });
-
 
             function checkDelivered(callback) {
                 dbConn.query(sql_select_delivery, [reqData.estimateId, reqData.id], function(err, results) {
@@ -135,12 +136,14 @@ var objProposal = {
                                                   'JOIN cafe c ON (c.id = p.cafe_id) ' +
                                   'WHERE p.id = ?';
 
+        dbPool.logStatus();
         dbPool.getConnection(function(err, dbConn) {
             if (err) {
                 return callback(err);
             }
             dbConn.query(sql_select_distance, [proposalId], function(err, results) {
                 dbConn.release();
+                dbPool.logStatus();
                 if (err) {
                     return callback(err);
                 }
@@ -172,12 +175,14 @@ var objProposal = {
                                                              'WHERE customer_id = ?) AND proposal_state = 0 ' +
                                         'LIMIT ?, ?';
 
+        dbPool.logStatus();
         dbPool.getConnection(function(err, dbConn) {
             if (err) {
                 return callback(err);
             }
             dbConn.query(sql_select_proposal_list, [reqData.customerId, reqData.rowCount * (reqData.pageNo - 1), reqData.rowCount], function(err, results) {
                 dbConn.release();
+                dbPool.logStatus();
                 if (err) {
                     return callback(err);
                 }
@@ -233,6 +238,7 @@ var objProposal = {
                                                           'JOIN customer c ON (c.id = e.customer_id) ' +
                                           'WHERE estimate_id = ? AND p.id = ?';
 
+        dbPool.logStatus();
         dbPool.getConnection(function(err, dbConn) {
             if (err) {
                 return callback(err);
@@ -240,6 +246,7 @@ var objProposal = {
             dbConn.beginTransaction(function(err) {
                 if (err) {
                     dbConn.release();
+                    dbPool.logStatus();
                     return callback(err);
                 }
                 var resultData = {};
@@ -247,11 +254,13 @@ var objProposal = {
                     if (err) {
                         dbConn.rollback(function() {
                             dbConn.release();
+                            dbPool.logStatus();
                             return callback(err);
                         })
                     }
                     dbConn.commit(function() {
                         dbConn.release();
+                        dbPool.logStatus();
                         callback(null, resultData);
                     })
                 });

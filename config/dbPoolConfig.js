@@ -1,3 +1,6 @@
+var mysql = require('mysql');
+var logger = require('./logger');
+
 var dbPoolConfig = {
   host: process.env.DB_HOST,
   user: process.env.DB_USER,

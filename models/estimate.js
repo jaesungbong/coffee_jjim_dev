@@ -37,6 +37,7 @@ var estimateObj = {
                                                                     'FROM proposal ' +
                                   'WHERE proposal_state = 0 OR proposal_state IS NULL) b ON (a.estimateId = b.estimate_id)';
 
+        dbPool.logStatus();
         dbPool.getConnection(function (err, dbConn) {
             if (err) {
                 return callback(err);
@@ -47,17 +48,20 @@ var estimateObj = {
             dbConn.beginTransaction(function (err) {
                 if (err) {
                     dbConn.release();
+                    dbPool.logStatus();
                     return callback(err);
                 }
                 async.series([compareTime, checkExistAuction, insertEstimate, selectDeliveryCafe, insertDelivery, getEstimateData], function(err, result) {
                     if (err) {
                         return dbConn.rollback(function() {
                             dbConn.release();
+                            dbPool.logStatus();
                             callback(err);
                         })
                     }
                     dbConn.commit(function() {
                         dbConn.release();
+                        dbPool.logStatus();
                         callback(null, resultData);
                     });
                 });
@@ -196,12 +200,14 @@ var estimateObj = {
         var sql_update_estimate_end = 'UPDATE estimate ' +
                                       'SET auction_state = 1 ' +
                                       'WHERE id = ?';
+        dbPool.logStatus();
         dbPool.getConnection(function(err, dbConn) {
             if (err) {
                 return callback(err);
             }
             dbConn.query(sql_update_estimate_end, [estimateId], function(err, results) {
                 dbConn.release();
+                dbPool.logStatus();
                 if (err) {
                     return callback(err);
                 }
@@ -221,13 +227,14 @@ var estimateObj = {
                                                   'WHERE cafe_id = ?) b ON (a.estimateId = b.estimate_id) ' +
             'WHERE b.proposal_state = 0 OR b.proposal_state IS NULL ' +
             'LIMIT ?, ?';
-
+        dbPool.logStatus();
         dbPool.getConnection(function(err, dbConn) {
             if (err) {
                 return callback(err);
             }
             dbConn.query(sql_estimate_list, [reqData.id, reqData.id, reqData.rowCount * (reqData.pageNo - 1), reqData.rowCount], function(err, results) {
                 dbConn.release();
+                dbPool.logStatus();
                 if (err) {
                     return callback(err);
                 }
@@ -249,12 +256,14 @@ var estimateObj = {
                             'JOIN cafe cf ON (cf.id = p.cafe_id) ' +
             'WHERE c.id = ? AND p.proposal_state = 1 AND year(DATE_FORMAT(CONVERT_TZ(e.reservation_time, \'+00:00\', \'+09:00\'), \'%Y-%m-%d %H:%i:%s\')) = ? AND month(DATE_FORMAT(CONVERT_TZ(e.reservation_time, \'+00:00\', \'+09:00\'), \'%Y-%m-%d %H:%i:%s\')) = ?';
 
+        dbPool.logStatus();
         dbPool.getConnection(function(err, dbConn) {
             if (err) {
                 return callback(err);
             }
             dbConn.query(sql_select_booked_estimate, [reqData.customerId, reqData.year, reqData.month], function(err, results) {
                 dbConn.release();
+                dbPool.logStatus();
                 if (err) {
                     return callback(err);
                 }
@@ -271,12 +280,14 @@ var estimateObj = {
                             'JOIN cafe cf ON (cf.id = p.cafe_id) ' +
             'WHERE cf.id = ? AND p.proposal_state = 1 AND year(DATE_FORMAT(CONVERT_TZ(e.reservation_time, \'+00:00\', \'+09:00\'), \'%Y-%m-%d %H:%i:%s\')) = ? AND month(DATE_FORMAT(CONVERT_TZ(e.reservation_time, \'+00:00\', \'+09:00\'), \'%Y-%m-%d %H:%i:%s\')) = ?';
 
+        dbPool.logStatus();
         dbPool.getConnection(function(err, dbConn) {
             if (err) {
                 return callback(err);
             }
             dbConn.query(sql_select_booked_estimate, [reqData.cafeId, reqData.year, reqData.month], function(err, results) {
                 dbConn.release();
+                dbPool.logStatus();
                 if (err) {
                     return callback(err);
                 }

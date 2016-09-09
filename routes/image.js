@@ -5,9 +5,16 @@ var isAuthenticated = require('./common').isAuthenticated;
 var formidable = require('formidable');
 var fs = require('fs');
 var Image = require('../models/image');
+var logger = require('../config/logger');
 
 //카페 이미지 업로드&수정
 router.put('/', isAuthenticated, function(req, res, next) {
+    logger.log('debug', '-------------- image upload & edit --------------');
+    logger.log('debug', '%s %s://%s%s', req.method, req.protocol, req.headers['host'], req.originalUrl);
+    logger.log('debug', 'baseUrl: %s', req.baseUrl);
+    logger.log('debug', 'url: %s', req.url);
+    logger.log('debug', 'query: %j', req.query, {});
+    logger.log('debug', 'range: %s', req.headers['range']);
     var form = new formidable.IncomingForm();
     form.uploadDir = path.join(__dirname, '../images/cafes');
     form.keepExtensions = true;
@@ -46,6 +53,7 @@ router.put('/', isAuthenticated, function(req, res, next) {
                     res.send({
                         message: '이미지 업로드 완료!',
                     });
+                    logger.log('debug', '-------------- image upload & edit completed --------------');
                 });
             });
         } else {

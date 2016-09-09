@@ -11,12 +11,15 @@ var bookmarkObj = {
             'LEFT JOIN (SELECT * FROM image WHERE sequence = 1) i ON(c.id = i.cafe_id) ' +
             'WHERE b.customer_id = ? ' +
             'LIMIT ?, ?';
+
+        dbPool.logStatus();
         dbPool.getConnection(function (err, dbConn) {
             if (err) {
                 return callback(err);
             }
             dbConn.query(sql_select_favorite_cafe, [reqData.customerId, reqData.rowCount * (reqData.pageNo - 1), reqData.rowCount], function(err, results) {
                 dbConn.release();
+                dbPool.logStatus();
                 if (err) {
                     return callback(err);
                 }
@@ -32,13 +35,14 @@ var bookmarkObj = {
     addCafe : function(reqData, callback) {
         var sql_insert_bookmark = 'INSERT bookmark(customer_id, cafe_id) ' +
                                   'VALUES(?, ?)';
-
+        dbPool.logStatus();
         dbPool.getConnection(function (err, dbConn) {
             if (err) {
                 return callback(err);
             }
             dbConn.query(sql_insert_bookmark, [reqData.customerId, reqData.id], function(err, results) {
                 dbConn.release();
+                dbPool.logStatus();
                 if (err) {
                     return callback(err);
                 }
@@ -50,12 +54,14 @@ var bookmarkObj = {
         var sql_delete_bookmark = 'DELETE FROM bookmark ' +
                                   'WHERE customer_id = ? AND cafe_id = ?';
 
+        dbPool.logStatus();
         dbPool.getConnection(function (err, dbConn) {
             if (err) {
                 return callback(err);
             }
             dbConn.query(sql_delete_bookmark, [reqData.customerId, reqData.id], function(err, results) {
                 dbConn.release();
+                dbPool.logStatus();
                 if (err) {
                     return callback(err);
                 }

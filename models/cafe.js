@@ -16,7 +16,7 @@ var CafeObj = {
         var sql_select_user = 'SELECT u.id id, type, reg_date regDate, u.fcm_token fcmToken ' +
                               'FROM user u JOIN cafe c ON (u.id = c.user_id) ' +
                               'WHERE c.owner_login_id = ?';
-
+        dbPool.logStatus();
         dbPool.getConnection(function(err, dbConn) {
             if (err) {
                 return callback(err);
@@ -24,14 +24,17 @@ var CafeObj = {
             dbConn.query(sql_select_password, [ownerLoginId], function(err, password) {
                 if (err) {
                     dbConn.release();
+                    dbPool.logStatus();
                     return callback(err);
                 }
                 if (password.length === 0) {
                     dbConn.release();
+                    dbPool.logStatus();
                     return callback(null);
                 }
                 dbConn.query(sql_select_user, [ownerLoginId], function(err, user) {
                     dbConn.release();
+                    dbPool.logStatus();
                     if (err) {
                        return callback(err);
                     }
@@ -46,12 +49,15 @@ var CafeObj = {
     },
     verifyPassword : function(password, hashPassword, callback) {
         var sql = 'SELECT SHA2(?, 512) password';
+
+        dbPool.logStatus();
         dbPool.getConnection(function(err, dbConn){
             if (err) {
                 return callback(err);
             }
             dbConn.query(sql, [password], function(err, results) {
                 dbConn.release();
+                dbPool.logStatus();
                 if (err) {
                     return callback(err);
                 }
@@ -62,17 +68,19 @@ var CafeObj = {
             });
         });
     },
-    //fcm 토큰 UPDATE!!
     updateFcmToken : function(loginData, callback) {
         var sql_update_token = 'UPDATE user u JOIN cafe c ON(u.id = c.user_id) ' +
                                'SET u.fcm_token = ? ' +
                                'WHERE c.owner_login_id = ?';
+
+        dbPool.logStatus();
         dbPool.getConnection(function(err, dbConn) {
             if (err) {
                 return callback(err);
             }
             dbConn.query(sql_update_token, [loginData.fcmToken, loginData.ownerLoginId], function(err, result) {
                 dbConn.release();
+                dbPool.logStatus();
                 if (err) {
                     return callback(err);
                 }
@@ -80,7 +88,6 @@ var CafeObj = {
             })
         })
     },
-    //카페 회원가입
     registerCafe : function(reqData, callback) {
         //user 테이블에 insert
         var sql_insert_user = 'INSERT INTO user(type, fcm_token) ' +
@@ -98,6 +105,7 @@ var CafeObj = {
                                                 'location) ' +
                               'VALUES(?, ?, SHA2(?, 512), ?, ?, ?, ?, ?, ?, point(?, ?))';
 
+        dbPool.logStatus();
         dbPool.getConnection(function(err, dbConn) {
             if (err) {
                 return callback(err);
@@ -105,18 +113,20 @@ var CafeObj = {
                 dbConn.beginTransaction(function (err) {
                     if (err) {
                         dbConn.release();
+                        dbPool.logStatus();
                         return callback(err);
                     }
-                    //waterfall인자로 insertId를 넘김
                     async.waterfall([insertUser, insertCafe],function(err, result) {
                         if (err) {
                             dbConn.rollback(function() {
                                 dbConn.release();
+                                dbPool.logStatus();
                                 callback(err);
                             });
                         }
                         dbConn.commit(function() {
                             dbConn.release();
+                            dbPool.logStatus();
                             callback(null);
                         });
                     });
@@ -157,12 +167,15 @@ var CafeObj = {
         var sql_select_cafe = 'SELECT id ' +
                               'FROM cafe ' +
                               'WHERE owner_login_id = ?';
+
+        dbPool.logStatus();
         dbPool.getConnection(function (err, dbConn) {
             if (err) {
                 return callback(err);
             }
             dbConn.query(sql_select_cafe, [idToCheck], function(err, result) {
                 dbConn.release();
+                dbPool.logStatus();
                 if (err) {
                     return callback(err);
                 }
@@ -181,6 +194,7 @@ var CafeObj = {
         var sql_update_cafe = 'UPDATE cafe ' +
                               'SET cafe_address = ?, cafe_phone_number = ?, business_hour = ?, location = point(?, ?), wifi = ?, days = ?, parking = ?, socket = ? ' +
                               'WHERE id = ?';
+        dbPool.logStatus();
         dbPool.getConnection(function (err, dbConn) {
             if (err) {
                 return callback(err);
@@ -188,6 +202,7 @@ var CafeObj = {
 
             async.waterfall([getCafeInfo, setCafeInfo], function(err) {
                 dbConn.release();
+                dbPool.logStatus();
                 if (err) {
                     return callback(err);
                 }
@@ -233,6 +248,7 @@ var CafeObj = {
                                'SET password = sha2( ? ,512), owner_name= ?, owner_phone_number = ?, owner_email = ?' +
                                'WHERE id = ?';
 
+        dbPool.logStatus();
         dbPool.getConnection(function(err, dbConn) {
             if (err) {
                 return callback(err);
@@ -240,6 +256,7 @@ var CafeObj = {
 
             async.waterfall([getOwnerInfo, setOwnerInfo], function(err) {
                 dbConn.release();
+                dbPool.logStatus();
                 if (err) {
                     return callback(err);
                 }
@@ -280,7 +297,7 @@ var CafeObj = {
         var sql_select_image ='SELECT id imageId, sequence, image_name imageUrl ' +
                               'FROM image ' +
                               'WHERE cafe_id = ?';
-        
+        dbPool.logStatus();
         dbPool.getConnection(function(err, dbConn){
             if (err) {
                 return callback(err);
@@ -289,14 +306,17 @@ var CafeObj = {
                 function(err, cafeInfo, images){
                     if (err) {
                         dbConn.release();
+                        dbPool.logStatus();
                         return callback(err);
                     } else if (cafeInfo && !images) { //카페정보만 있고 이미지는 없을 경우
                         dbConn.release();
+                        dbPool.logStatus();
                         var cafeData = {};
                         cafeData.cafeInfo = cafeInfo;
                         callback(null, cafeData);
                     } else { //카페 정보와 이미지 둘다 있을 경우
                         dbConn.release();
+                        dbPool.logStatus();
                         var cafeData = {};
                         cafeData.cafeInfo = cafeInfo;
                         cafeData.images = images;
@@ -304,7 +324,6 @@ var CafeObj = {
                     }
             });
 
-            //카페의 기본정보를 가져와 Callback으로 넘겨줌.
             function getCafeInfo(callback){
                 dbConn.query(sql_select_cafe, [cafeId], function(err, results) {
                     if (err) {
@@ -314,9 +333,6 @@ var CafeObj = {
                 });
             }
 
-            // getCafeInfo에서 받은 카페들의 기본정보를 인자로 받고
-            // 이미지들을 가져와 이미지가 있으면 카페정보와 이미지를 함께 넘겨주고
-            // 이미지가 없으면 카페 정보만 넘겨줌.
             function getCafeImage(cafeInfo, callback){
                 dbConn.query(sql_select_image, [cafeId], function(err, images) {
                     if (err) {
@@ -343,12 +359,14 @@ var CafeObj = {
                                                      'WHERE sequence = 1) i ON (c.id = i.cafe_id) ' +
                               'ORDER BY distance ' +
                               'LIMIT ?,?';
+        dbPool.logStatus();
         dbPool.getConnection(function (err, dbConn) {
             if (err) {
                 return callback(err);
             }
             dbConn.query(sql_select_cafe, [reqData.latitude, reqData.longitude, reqData.latitude, reqData.rowCount * (reqData.pageNo - 1), reqData.rowCount], function(err, results) {
                 dbConn.release();
+                dbPool.logStatus();
                 if (err) {
                     return callback(err);
                 }
@@ -373,12 +391,14 @@ var CafeObj = {
                                'WHERE c.cafe_address like ? OR c.cafe_name like ? ' +
                                'ORDER BY distance ' +
                                'LIMIT ?,?';
+        dbPool.logStatus();
         dbPool.getConnection(function (err, dbConn) {
             if (err) {
                 return callback(err);
             }
             dbConn.query(sql_select_cafes, [reqData.latitude, reqData.longitude, reqData.latitude, '%'+ reqData.keyword +'%', '%'+ reqData.keyword +'%', reqData.rowCount * (reqData.pageNo - 1), reqData.rowCount], function(err, results) {
                 dbConn.release();
+                dbPool.logStatus();
                 if (err) {
                     return callback(err);
                 }
@@ -401,12 +421,14 @@ var CafeObj = {
                                     'GROUP BY b.cafe_id ' +
                                     'ORDER BY count(customer_id) DESC ' +
                                     'LIMIT 5';
+        dbPool.logStatus();
         dbPool.getConnection(function (err, dbConn) {
             if (err) {
                 return callback(err);
             }
             dbConn.query(sql_select_best5_cafe, [], function(err, results) {
                 dbConn.release();
+                dbPool.logStatus();
                 if (err) {
                     return callback(err);
                 }
@@ -427,12 +449,15 @@ var CafeObj = {
                                   'AND i.sequence = 1 ' +
                                   'ORDER BY RAND() ' +
                                   'LIMIT 5';
+
+        dbPool.logStatus();
         dbPool.getConnection(function (err, dbConn) {
             if (err) {
                 return callback(err);
             }
             dbConn.query(sql_select_new_cafe, [], function(err, results) {
                 dbConn.release();
+                dbPool.logStatus();
                 if (err) {
                     return callback(err);
                 }
@@ -449,12 +474,14 @@ var CafeObj = {
         var sql_select_owner_info = 'SELECT owner_name ownerName, owner_phone_number ownerPhoneNumber, owner_email ownerEmail ' +
                                     'FROM cafe ' +
                                     'WHERE id = ?';
+        dbPool.logStatus();
         dbPool.getConnection(function (err, dbConn) {
             if (err) {
                 return callback(err);
             }
             dbConn.query(sql_select_owner_info, [cafeId], function(err, results) {
                 dbConn.release();
+                dbPool.logStatus();
                 if (err) {
                     return callback(err);
                 }
