@@ -10,9 +10,9 @@ var UserObj = {
         var sql_find_customer = 'SELECT * ' +
                                 'FROM customer ' +
                                 'WHERE user_id = ?';
-        var sql_find_cafe = 'SELECT * ' +
-                             'FROM cafe ' +
-                             'WHERE user_id = ?';
+        var sql_find_cafe = 'SELECT id, user_id, owner_login_id, owner_name, owner_phone_number, owner_email, cafe_name, cafe_phone_number, cafe_address, business_hour, auction_range, y(location) latitude, x(location) longitude, wifi, days, parking, socket ' +
+                            'FROM cafe ' +
+                            'WHERE user_id = ?';
 
         var user = {};
 
@@ -36,7 +36,6 @@ var UserObj = {
                         }
                         callback(null, customer);
                     });
-                    callback(null, user);
                 } else { //카페
                     findCafe(function(err, cafe) {
                         dbConn.release();
@@ -50,44 +49,42 @@ var UserObj = {
             });
 
             function findCustomer(callback) {
-                dbConn.query(sql_find_customer, [id], function(err, result) {
+                dbConn.query(sql_find_customer, [id], function(err, results) {
                     if (err) {
                         return callback(err);
                     }
-                    user.id = result[0].id;
-                    user.userId = result[0].user_id;
-                    user.kakaoId = result[0].kakaoid;
-                    user.nickname = result[0].nickname;
-                    user.phoneNumber = result[0].phone_number;
-                    user.beepTime = result[0].beep_time;
-                    user.auctionRange = result[0].auction_range;
-                    user.auctionTime = result[0].auction_time;
+                    user.id = results[0].id;
+                    user.userId = results[0].user_id;
+                    user.kakaoid = results[0].kakaoid;
+                    user.nickname = results[0].nickname;
+                    user.phoneNumber = results[0].phone_number;
+                    user.auctionRange = results[0].auction_range;
                     callback(null, user);
                 })
             }
 
             function findCafe(callback) {
-                dbConn.query(sql_find_cafe, [id], function(err, result) {
+                dbConn.query(sql_find_cafe, [id], function(err, results) {
                     if (err) {
                         return callback(err);
                     }
-                    user.id = result[0].id;
-                    user.userId = result[0].user_id;
-                    user.ownerLoginId = result[0].owner_login_id;
-                    user.password = result[0].password;
-                    user.ownerName = result[0].owner_name;
-                    user.ownerPhoneNumber = result[0].owner_phone_number;
-                    user.ownerEmail = result[0].owner_email;
-                    user.cafeName = result[0].cafe_name;
-                    user.cafePhoneNumber = result[0].cafe_phone_number;
-                    user.cafeAddress = result[0].cafe_address;
-                    user.businessHour = result[0].business_hour;
-                    user.location = result[0].location;
-                    user.auctionRange = result[0].auction_range;
-                    user.wifi = result[0].wifi;
-                    user.days = result[0].days;
-                    user.parking = result[0].parking;
-                    user.socket = result[0].socket;
+                    user.id = results[0].id;
+                    user.userId = results[0].user_id;
+                    user.ownerLoginId = results[0].owner_login_id;
+                    user.ownerName = results[0].owner_name;
+                    user.ownerPhoneNumber = results[0].owner_phone_number;
+                    user.ownerEmail = results[0].owner_email;
+                    user.cafeName = results[0].cafe_name;
+                    user.cafePhoneNumber = results[0].cafe_phone_number;
+                    user.cafeAddress = results[0].cafe_address;
+                    user.auctionRange = results[0].auction_range;
+                    user.businessHour = results[0].business_hour;
+                    user.latitude = results[0].latitude;
+                    user.longitude = results[0].longitude;
+                    user.wifi = results[0].wifi;
+                    user.days = results[0].days;
+                    user.parking = results[0].parking;
+                    user.socket = results[0].socket;
                     callback(null, user);
                 })
             }

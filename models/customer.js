@@ -3,6 +3,61 @@ var async = require('async');
 var dbPool = require('../models/common').dbPool;
 
 var CustomerObj = {
+    findOrCreate : function(profile, callback) {
+        var sql_select_user = 'SELECT u.id id ' +
+                              'FROM user u JOIN customer c ON (u.id = c.user_id) ' +
+                              'WHERE c.kakaoid = ?';
+        var sql_insert_user = 'INSERT INTO user(type) VALUES(0)';
+        var sql_insert_customer = 'INSERT INTO customer(user_id, kakaoid, nickname) ' +
+                                  'VALUES(?, ?, ?)';
+
+        dbPool.getConnection(function(err, dbConn) {
+            if (err) {
+               return callback(err);
+            }
+            dbConn.query(sql_select_user, [profile.id], function(err, results) {
+               if (err) {
+                  dbConn.release();
+                  return callback(err);
+               }
+               if (results.length !== 0) {
+                   dbConn.release();
+                   var user = {};
+                   user.id = results[0].id;
+                   return callback(null, user);
+               }
+               async.waterfall([insertUser, insertCustomer], function(err, result) {
+                   dbConn.release();
+                   if (err) {
+                       return callback(err);
+                   }
+                   callback(null, result);
+               })
+            });
+
+            function insertUser(callback) {
+                dbConn.query(sql_insert_user, function(err, results) {
+                    if (err) {
+                        return callback(err);
+                    }
+                    var userId = results.insertId;
+                    callback(null, userId);
+                });
+            }
+
+            function insertCustomer(userId, callback) {
+                dbConn.query(sql_insert_customer, [userId, profile.id, profile._json.properties.nickname],function(err, results) {
+                    if (err) {
+                        return callback(err);
+                    }
+                    var user = {};
+                    user.id = userId;
+                    callback(null, user);
+                });
+            }
+        });
+
+    },
     // 휴대폰 번호 등록하기
     setPhoneNumber : function(reqData, callback) {
         var sql_update_phone_number = 'UPDATE customer ' +

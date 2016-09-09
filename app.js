@@ -32,7 +32,7 @@ app.set('view engine', 'jade');
 app.use(logger('dev'));
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: false }));
-app.use(cookieParser());
+app.use(cookieParser(process.env.SESSION_SECRET));
 app.use(session({
   secret : process.env.SESSION_SECRET,
   store : new redisStore({
@@ -41,7 +41,13 @@ app.use(session({
     client : redisClient
   }),
   resave : true,
-  saveUninitialized : false
+  saveUninitialized : false,
+  cookie : {
+    path : '/',
+    httpOnly : true,
+    secure: false,
+    maxAge: 1000 * 60 * 60 * 24 * 30
+  }
 }));
 app.use(passport.initialize());
 app.use(passport.session());

@@ -4,9 +4,11 @@ var passport = require('passport');
 var LocalStrategy = require('passport-local').Strategy;
 var Cafe = require('../models/cafe');
 var User = require('../models/user');
+var Customer = require('../models/customer');
 var isSecure = require('./common').isSecure;
 var isAuthenticated = require('./common').isAuthenticated;
 var KakaoStrategy = require('passport-kakao').Strategy;
+var KakaoTokenStrategy = require('passport-kakao-token').Strategy;
 var logger = require('../config/logger');
 
 // 카페 로그인 strategy
@@ -29,6 +31,37 @@ passport.use(new LocalStrategy({usernameField: 'ownerLoginId', passwordField: 'p
         })
     })
 }));
+
+// 카카오 콜백 strategy
+passport.use(new KakaoStrategy({
+        clientID : process.env.KAKAO_APP_ID,
+        callbackURL : process.env.KAKAO_CALLBACK_URL
+    },
+    function(accessToken, refreshToken, profile, done){
+        console.log(accessToken);
+        Customer.findOrCreate(profile, function(err, user) {
+            if (err) {
+                return done(err);
+            }
+            done(null, user);
+        });
+    }
+));
+
+// 카카오 토큰 strategy
+passport.use(new KakaoTokenStrategy({
+        clientID : process.env.KAKAO_APP_ID,
+        //callbackURL : process.env.KAKAO_CALLBACK_URL
+    },
+    function(accessToken, refreshToken, profile, done){
+        Customer.findOrCreate(profile, function(err, user) {
+            if (err) {
+                return done(err);
+            }
+            done(null, user);
+        });
+    }
+));
 
 passport.serializeUser(function(user, done) {
     done(null, user.id);
@@ -96,5 +129,26 @@ router.get('/local/logout', isAuthenticated, function(req, res, next) {
     res.send({ message: '로그아웃!' });
     logger.log('debug', '-------------- logout completed --------------');
 });
+
+// 카카오 콜백
+router.get('/kakao/callback', isSecure, passport.authenticate('kakao'), function(req, res, next) {
+    res.send({ message: 'kakao callback' });
+});
+
+// 카카오 로그인
+router.get('/kakao/token', isSecure, passport.authenticate('kakao-token'), function (req, res, next) {
+    if (req.user) {
+       res.send({
+           code : 1,
+           message : "login ok"
+       }) 
+    } else {
+        res.send({
+            code : - 1,
+            message : "로그인 실패"
+        })
+    }
+});
+
 
 module.exports = router;
