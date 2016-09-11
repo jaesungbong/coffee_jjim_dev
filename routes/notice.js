@@ -18,7 +18,7 @@ router.get('/', isAuthenticated, function(req, res, next) {
                code : 1,
                message : '공지사항 입니다.',
                result : result
-           })
+           });
         });
     }
 });

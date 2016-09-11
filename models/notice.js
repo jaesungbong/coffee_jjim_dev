@@ -1,5 +1,4 @@
 var mysql = require('mysql');
-var async = require('async');
 var dbPool = require('../models/common').dbPool;
 
 var noticeObj = {
@@ -18,6 +17,11 @@ var noticeObj = {
                 dbPool.logStatus();
                 if (err) {
                    return callback(err);
+                }
+                for(var i = 0; i < results.length; i ++) {
+                    var contentDesc = { contentDesc : results[i].contents};
+                    results[i].contents = [];
+                    results[i].contents.push(contentDesc);
                 }
                 callback(null, results);
             });
