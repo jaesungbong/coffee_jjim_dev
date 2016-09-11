@@ -219,12 +219,12 @@ var estimateObj = {
     getEstimateList : function(reqData, callback) {
         var sql_estimate_list =
             'SELECT a.estimateId, a.nickname, a.auctionStartTime, a.deadlineTime, a.reservationTime, a.people, a.wifi, a.days, a.parking, a.socket, b.proposal_state proposalState ' +
-            'FROM(SELECT cafe_id id, e.id estimateId,c.nickname nickname, DATE_FORMAT(CONVERT_TZ(e.auction_start_time,\'+00:00\',\'+09:00\'), \'%Y-%m-%d %H:%i:%s\') auctionStartTime, e.people, wifi, days, parking, socket, DATE_FORMAT(CONVERT_TZ(DATE_ADD(e.auction_start_time, INTERVAL (e.auction_time) MINUTE), \'+00:00\', \'+09:00\'), \'%Y-%m-%d %H:%i:%s\') deadlineTime, DATE_FORMAT(CONVERT_TZ(e.reservation_time, \'+00:00\', \'+09:00\'), \'%Y-%m-%d %H:%i:%s\') reservationTime ' +
+            'FROM(SELECT cafe_id id, e.id estimateId, c.nickname nickname, DATE_FORMAT(CONVERT_TZ(e.auction_start_time,\'+00:00\',\'+09:00\'), \'%Y-%m-%d %H:%i:%s\') auctionStartTime, e.people, wifi, days, parking, socket, DATE_FORMAT(CONVERT_TZ(DATE_ADD(e.auction_start_time, INTERVAL (e.auction_time) MINUTE), \'+00:00\', \'+09:00\'), \'%Y-%m-%d %H:%i:%s\') deadlineTime, DATE_FORMAT(CONVERT_TZ(e.reservation_time, \'+00:00\', \'+09:00\'), \'%Y-%m-%d %H:%i:%s\') reservationTime ' +
                  'FROM delivery d JOIN estimate e ON(d.estimate_id = e.id) ' +
                                  'JOIN customer c ON(e.customer_id = c.id) ' +
-                 'WHERE cafe_id = ?) a LEFT JOIN (SELECT estimate_id, proposal_state ' +
-                                                  'FROM proposal ' +
-                                                  'WHERE cafe_id = ?) b ON (a.estimateId = b.estimate_id) ' +
+                 'WHERE cafe_id = ? AND auction_state = 0) a LEFT JOIN (SELECT estimate_id, proposal_state ' +
+                                                                       'FROM proposal ' +
+                                                                       'WHERE cafe_id = ?) b ON (a.estimateId = b.estimate_id) ' +
             'WHERE b.proposal_state = 0 OR b.proposal_state IS NULL ' +
             'LIMIT ?, ?';
         dbPool.logStatus();

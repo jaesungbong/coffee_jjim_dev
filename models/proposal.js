@@ -71,62 +71,62 @@ var objProposal = {
                     callback(null);
                 });
             }
+
+            // 고객에게 보낼 입찰서의 정보를 parallel로 처리해 모두 가져온다.
+            function getProposalInfo(callback) {
+                async.parallel([getCustomerFcmToken, getCafeInfo, getDistance], function (err, results) {
+                    if (err) {
+                        return next(err);
+                    }
+                    callback(null);
+                });
+            }
+
+            // 고객의 fcm 토큰 받아오기
+            function getCustomerFcmToken(callback) {
+                User.getCustomerFcmTokenByEstimateId(reqData.estimateId, function(err, result) {
+                    if (err) {
+                        return next(err);
+                    }
+                    fcmData.customerFcmToken = [];
+                    fcmData.customerFcmToken.push(result);
+                    callback(null);
+                });
+            }
+
+            // 자신의 카페 정보 받아오기
+            function getCafeInfo(callback) {
+                Cafe.getCafeInfo(reqData.id, function(err, result) {
+                    if (err) {
+                        return next(err);
+                    }
+                    fcmData.id = result.cafeInfo.id;
+                    fcmData.cafeName = result.cafeInfo.cafeName;
+                    fcmData.cafeAddress = result.cafeInfo.cafeAddress;
+                    fcmData.wifi = result.cafeInfo.wifi;
+                    fcmData.days = result.cafeInfo.days;
+                    fcmData.parking = result.cafeInfo.parking;
+                    fcmData.socket = result.cafeInfo.socket;
+                    if (!result.images) {
+                        fcmData.imageUrl = -1;
+                    } else {
+                        fcmData.imageUrl = result.images[0].imageUrl;
+                    }
+                    callback(null);
+                });
+            }
+
+            // 입찰서와 자기 카페의 거리 받아오기
+            function getDistance(callback) {
+                objProposal.getDistanceBetweenEstimateAndCafe(fcmData.proposalId, function(err, result) {
+                    if (err) {
+                        return next(err);
+                    }
+                    fcmData.distance = result;
+                    callback(null);
+                })
+            }
         });
-
-        // 고객에게 보낼 입찰서의 정보를 parallel로 처리해 모두 가져온다.
-        function getProposalInfo(callback) {
-            async.parallel([getCustomerFcmToken, getCafeInfo, getDistance], function (err, results) {
-                if (err) {
-                    return next(err);
-                }
-                callback(null);
-            });
-        }
-
-        // 고객의 fcm 토큰 받아오기
-        function getCustomerFcmToken(callback) {
-            User.getCustomerFcmTokenByEstimateId(reqData.estimateId, function(err, result) {
-                if (err) {
-                    return next(err);
-                }
-                fcmData.customerFcmToken = [];
-                fcmData.customerFcmToken.push(result);
-                callback(null);
-            });
-        }
-
-        // 자신의 카페 정보 받아오기
-        function getCafeInfo(callback) {
-            Cafe.getCafeInfo(reqData.id, function(err, result) {
-                if (err) {
-                    return next(err);
-                }
-                fcmData.id = result.cafeInfo.id;
-                fcmData.cafeName = result.cafeInfo.cafeName;
-                fcmData.cafeAddress = result.cafeInfo.cafeAddress;
-                fcmData.wifi = result.cafeInfo.wifi;
-                fcmData.days = result.cafeInfo.days;
-                fcmData.parking = result.cafeInfo.parking;
-                fcmData.socket = result.cafeInfo.socket;
-                if (!result.images) {
-                    fcmData.imageUrl = -1;
-                } else {
-                    fcmData.imageUrl = result.images[0].imageUrl;
-                }
-                callback(null);
-            });
-        }
-
-        // 입찰서와 자기 카페의 거리 받아오기
-        function getDistance(callback) {
-            objProposal.getDistanceBetweenEstimateAndCafe(fcmData.proposalId, function(err, result) {
-                if (err) {
-                    return next(err);
-                }
-                fcmData.distance = result;
-                callback(null);
-            })
-        }
     },
 
     // 입찰서와 카페의 거리
