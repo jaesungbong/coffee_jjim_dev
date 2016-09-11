@@ -40,7 +40,7 @@ var bookmarkObj = {
             if (err) {
                 return callback(err);
             }
-            dbConn.query(sql_insert_bookmark, [reqData.customerId, reqData.id], function(err, results) {
+            dbConn.query(sql_insert_bookmark, [reqData.customerId, reqData.cafeId], function(err, results) {
                 dbConn.release();
                 dbPool.logStatus();
                 if (err) {

@@ -1,6 +1,5 @@
 var express = require('express');
 var router = express.Router();
-var isSecure = require('./common').isSecure;
 var isAuthenticated = require('./common').isAuthenticated;
 var User = require('../models/user');
 var logger = require('../config/logger');
@@ -13,15 +12,15 @@ router.get('/me', isAuthenticated, function(req, res, next) {
     logger.log('debug', 'url: %s', req.url);
     logger.log('debug', 'query: %j', req.query, {});
     logger.log('debug', 'range: %s', req.headers['range']);
-    var id = req.user.id;
-    User.getAuctionRange(id, function(err, result) {
+    var reqData = req.user;
+    User.getAuctionRange(reqData, function(err, result) {
         if (err) {
             return next(err);
         }
         res.send({
             code : 1,
             message : "역경매 범위 입니다.",
-            data : result
+            result : result
         });
         logger.log('debug', '-------------- get auction range completed --------------');
     });
@@ -35,8 +34,7 @@ router.put('/me', isAuthenticated, function(req, res, next) {
     logger.log('debug', 'url: %s', req.url);
     logger.log('debug', 'query: %j', req.query, {});
     logger.log('debug', 'range: %s', req.headers['range']);
-    var reqData = {};
-    reqData.id = req.user.id;
+    var reqData = req.user;
     reqData.auctionRange = parseInt(req.body.auctionRange || 1);
     User.setAuctionRange(reqData, function(err, result) {
         if (err) {

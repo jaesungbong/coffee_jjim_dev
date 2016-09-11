@@ -62,8 +62,7 @@ router.get('/', isAuthenticated, function(req, res, next) {
     logger.log('debug', 'range: %s', req.headers['range']);
     if(req.url.match(/\/?pageNo=\d+&rowCount=\d+/i)){
         var reqData = {};
-        reqData.customerId = 1;
-        //reqData.customerId = req.user.id;
+        reqData.customerId = req.user.id;
         reqData.pageNo = parseInt(req.query.pageNo || 1);
         reqData.rowCount = parseInt(req.query.rowCount || 10);
         Proposal.getProposalList(reqData, function(err, results) {
@@ -90,8 +89,7 @@ router.put('/:proposalId', isAuthenticated, function(req, res, next) {
     logger.log('debug', 'query: %j', req.query, {});
     logger.log('debug', 'range: %s', req.headers['range']);
     var reqData = {};
-    reqData.customerId = 1;
-    //reqData.customerId = req.user.id;
+    reqData.customerId = req.user.id;
     reqData.proposalId = parseInt(req.params.proposalId || 0 );
     Proposal.doReservation(reqData, function(err, result) {
         if (err) {

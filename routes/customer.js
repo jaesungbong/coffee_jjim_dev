@@ -14,8 +14,7 @@ router.put('/me', isSecure, isAuthenticated, function(req, res, next) {
     logger.log('debug', 'query: %j', req.query, {});
     logger.log('debug', 'range: %s', req.headers['range']);
     var reqData = {};
-    reqData.customerId = 1;
-    //reqData.customerId = req.user.id;
+    reqData.customerId = req.user.id;
     reqData.phoneNumber = req.body.phoneNumber || '010-1234-5678';
     Customer.setPhoneNumber(reqData, function(err, result) {
         if (err) {

@@ -7,43 +7,25 @@ var url = require('url');
 
 var CafeObj = {
     findByOwnerLoginId : function(ownerLoginId, callback) {
-        // 아이디에 따른 패스워드만 꺼내옴
-        var sql_select_password = 'SELECT password ' +
-                                  'FROM cafe ' +
-                                  'WHERE owner_login_id = ?';
-
-        // user 정보를 꺼내옴
-        var sql_select_user = 'SELECT u.id id, type, reg_date regDate, u.fcm_token fcmToken ' +
-                              'FROM user u JOIN cafe c ON (u.id = c.user_id) ' +
-                              'WHERE c.owner_login_id = ?';
+        // Cafe 정보를 꺼내옴
+        var sql_select_cafe = 'SELECT id, user_id userId, owner_login_id ownerLoginId, password, owner_name ownerName, owner_phone_number ownerPhoneNumber, owner_email ownerEmail, cafe_name cafeName, cafe_phone_number cafePhoneNumber, cafe_address cafeAddress, business_hour businessHour, auction_range auctionRange, y(location) latitude, x(location) longitude, wifi, days, parking, socket ' +
+                              'FROM cafe ' +
+                              'WHERE owner_login_id = ?';
         dbPool.logStatus();
         dbPool.getConnection(function(err, dbConn) {
             if (err) {
                 return callback(err);
             }
-            dbConn.query(sql_select_password, [ownerLoginId], function(err, password) {
+            dbConn.query(sql_select_cafe, [ownerLoginId], function(err, results) {
+                dbConn.release();
+                dbPool.logStatus();
                 if (err) {
-                    dbConn.release();
-                    dbPool.logStatus();
                     return callback(err);
                 }
-                if (password.length === 0) {
-                    dbConn.release();
-                    dbPool.logStatus();
-                    return callback(null);
+                if (results.length === 0) {
+                    return callback(null, null);
                 }
-                dbConn.query(sql_select_user, [ownerLoginId], function(err, user) {
-                    dbConn.release();
-                    dbPool.logStatus();
-                    if (err) {
-                       return callback(err);
-                    }
-                    if (user.length === 0) {
-                       return callback(null);
-                    }
-                    //콜백으로 password 와 user 정보를 넘겨줌
-                    callback(null, password[0].password, user[0]);
-                });
+                callback(null, results[0]);
             })
         });
     },
@@ -91,7 +73,7 @@ var CafeObj = {
     registerCafe : function(reqData, callback) {
         //user 테이블에 insert
         var sql_insert_user = 'INSERT INTO user(type, fcm_token) ' +
-                              'VALUES(1, ?)'; //타입이 0이면 고객, 1이면 카페
+                              'VALUES(1, ?)';
         //cafe 테이블에 insert
         var sql_insert_cafe = 'INSERT INTO cafe(user_id, ' +
                                                 'owner_login_id, ' +

@@ -17,7 +17,6 @@ var noticeObj = {
                 dbConn.release();
                 dbPool.logStatus();
                 if (err) {
-
                    return callback(err);
                 }
                 callback(null, results);

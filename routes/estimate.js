@@ -17,8 +17,7 @@ router.post('/', isAuthenticated, function(req, res, next) {
     logger.log('debug', 'query: %j', req.query, {});
     logger.log('debug', 'range: %s', req.headers['range']);
     var estimateData={};
-    var customerId = 1;
-    estimateData.customerId = customerId;
+    estimateData.customerId = req.user.id;
     estimateData.people = parseInt(req.body.people || 1);
     estimateData.latitude = parseFloat(req.body.latitude);
     estimateData.longitude = parseFloat(req.body.longitude);
@@ -134,8 +133,7 @@ router.get('/booked', isSecure, isAuthenticated, function(req, res, next) {
         reqData.year = parseInt(req.query.year || present.year());
         reqData.month = parseInt(req.query.month || (present.month() + 1));
         if (reqData.type === 0) { //고객용
-            reqData.customerId = 1;
-            //reqData.customerId = req.user.id;
+            reqData.customerId = req.user.id;
             Estimate.getBookedEstimateForCustomer(reqData, function (err, results) {
                 if (err) {
                     return next (err);

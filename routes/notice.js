@@ -17,7 +17,7 @@ router.get('/', isAuthenticated, function(req, res, next) {
            res.send({
                code : 1,
                message : '공지사항 입니다.',
-               data : result
+               result : result
            })
         });
     }

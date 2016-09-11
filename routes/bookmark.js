@@ -14,13 +14,13 @@ router.get('/', isAuthenticated, function(req, res, next) {
     logger.log('debug', 'range: %s', req.headers['range']);
     if(req.url.match(/\/?pageNo=\d+&rowCount=\d+/i)) {
         var reqData = {};
-        reqData.customerId = 1;
+        reqData.customerId = req.user.id;
         reqData.pageNo = parseInt(req.query.pageNo) || 1;
         reqData.rowCount = parseInt(req.query.rowCount) || 10;
         Bookmark.getBookmarkCafe(reqData, function(err, result) {
             res.send({
                 message : "즐겨 찾기 카페 입니다.",
-                data : result,
+                result : result,
                 currentPage: reqData.pageNo
             });
             logger.log('debug', '-------------- bookmark cafe list completed --------------');
@@ -37,8 +37,8 @@ router.post('/', isAuthenticated, function(req, res, next) {
     logger.log('debug', 'query: %j', req.query, {});
     logger.log('debug', 'range: %s', req.headers['range']);
     var reqData = {};
-    reqData.customerId = 1;
-    reqData.id = req.body.id || 0;
+    reqData.customerId = req.user.id;
+    reqData.cafeId = req.body.cafeId || 0;
     Bookmark.addCafe(reqData, function(err, result) {
         if (err) {
             return next(err);
@@ -51,7 +51,7 @@ router.post('/', isAuthenticated, function(req, res, next) {
 });
 
 // 즐겨찾기 제거
-router.delete('/:id', isAuthenticated, function(req, res, next) {
+router.delete('/:bid', isAuthenticated, function(req, res, next) {
     logger.log('debug', '-------------- bookmark remove --------------');
     logger.log('debug', '%s %s://%s%s', req.method, req.protocol, req.headers['host'], req.originalUrl);
     logger.log('debug', 'baseUrl: %s', req.baseUrl);
@@ -59,8 +59,8 @@ router.delete('/:id', isAuthenticated, function(req, res, next) {
     logger.log('debug', 'query: %j', req.query, {});
     logger.log('debug', 'range: %s', req.headers['range']);
     var reqData = {};
-    reqData.customerId = 1;
-    reqData.id = req.params.id;
+    reqData.customerId = req.user.id;
+    reqData.id = req.params.bid;
     Bookmark.deleteCafe(reqData, function(err, result) {
         if (err) {
             return next(err);

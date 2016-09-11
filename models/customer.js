@@ -4,9 +4,9 @@ var dbPool = require('../models/common').dbPool;
 
 var CustomerObj = {
     findOrCreate : function(profile, callback) {
-        var sql_select_user = 'SELECT u.id id ' +
-                              'FROM user u JOIN customer c ON (u.id = c.user_id) ' +
-                              'WHERE c.kakaoid = ?';
+        var sql_select_customer = 'SELECT id, user_id userId, kakaoid, nickname, phone_number phoneNumber, auction_range auctionRange ' +
+                                  'FROM customer ' +
+                                  'WHERE kakaoid = ?';
         var sql_insert_user = 'INSERT INTO user(type) VALUES(0)';
         var sql_insert_customer = 'INSERT INTO customer(user_id, kakaoid, nickname) ' +
                                   'VALUES(?, ?, ?)';
@@ -15,23 +15,21 @@ var CustomerObj = {
             if (err) {
                return callback(err);
             }
-            dbConn.query(sql_select_user, [profile.id], function(err, results) {
+            dbConn.query(sql_select_customer, [profile.id], function(err, results) {
                if (err) {
                   dbConn.release();
                   return callback(err);
                }
                if (results.length !== 0) {
                    dbConn.release();
-                   var user = {};
-                   user.id = results[0].id;
-                   return callback(null, user);
+                   return callback(null, results[0]);
                }
-               async.waterfall([insertUser, insertCustomer], function(err, result) {
+               async.waterfall([insertUser, insertCustomer], function(err, user) {
                    dbConn.release();
                    if (err) {
                        return callback(err);
                    }
-                   callback(null, result);
+                   callback(null, user);
                })
             });
 
@@ -46,13 +44,18 @@ var CustomerObj = {
             }
 
             function insertCustomer(userId, callback) {
-                dbConn.query(sql_insert_customer, [userId, profile.id, profile._json.properties.nickname],function(err, results) {
+                dbConn.query(sql_insert_customer, [userId, profile.id, profile._json.properties.nickname], function(err, results) {
                     if (err) {
                         return callback(err);
                     }
-                    var user = {};
-                    user.id = userId;
-                    callback(null, user);
+                    var customer = {};
+                    customer.id = results.insertId;
+                    customer.userId = userId;
+                    customer.kakaoid = profile.id;
+                    customer.nickname = profile._json.properties.nickname;
+                    customer.phoneNumber = "";
+                    customer.auctionRange = 1;
+                    callback(null, customer);
                 });
             }
         });
@@ -106,6 +109,26 @@ var CustomerObj = {
                     } else {
                         results[i].bookmark = 1;
                     }
+                }
+                callback(null, results);
+            })
+        });
+    },
+    // 고객 fcm토큰 등록
+    setFcmToken : function(reqData, callback) {
+        var update_customer_fcm_token = 'UPDATE user u JOIN customer c ON (u.id = c.user_id) ' +
+                                        'SET fcm_token = ? ' +
+                                        'WHERE c.id = ?';
+        dbPool.logStatus();
+        dbPool.getConnection(function(err, dbConn) {
+            if (err) {
+                return callback(err);
+            }
+            dbConn.query(update_customer_fcm_token, [reqData.fcmToken, reqData.customerId], function(err, results) {
+                dbConn.release();
+                dbPool.logStatus();
+                if (err) {
+                    return callback(err);
                 }
                 callback(null, results);
             })
