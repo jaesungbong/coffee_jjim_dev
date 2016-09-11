@@ -35,6 +35,7 @@ router.post('/', isSecure, function(req, res, next) {
             return next(err);
         }
         res.send({
+            code : 1,
             message: '회원 가입!'
         });
         logger.log('debug', '-------------- cafe sing up completed --------------');

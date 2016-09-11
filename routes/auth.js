@@ -91,6 +91,7 @@ router.post('/local/login', isSecure, function(req, res, next) {
         }
         if (!user) {
             return res.status(401).send({
+                code : 2,
                 message: '로그인 실패'
             });
         }

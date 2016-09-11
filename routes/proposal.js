@@ -81,7 +81,7 @@ router.get('/', isAuthenticated, function(req, res, next) {
 });
 
 // 예약하기
-router.put('/:proposalId', isAuthenticated, function(req, res, next) {
+router.put('/:pid', isAuthenticated, function(req, res, next) {
     logger.log('debug', '-------------- cafe reservation --------------');
     logger.log('debug', '%s %s://%s%s', req.method, req.protocol, req.headers['host'], req.originalUrl);
     logger.log('debug', 'baseUrl: %s', req.baseUrl);
@@ -90,7 +90,7 @@ router.put('/:proposalId', isAuthenticated, function(req, res, next) {
     logger.log('debug', 'range: %s', req.headers['range']);
     var reqData = {};
     reqData.customerId = req.user.id;
-    reqData.proposalId = parseInt(req.params.proposalId || 0 );
+    reqData.proposalId = parseInt(req.params.pid || 0 );
     Proposal.doReservation(reqData, function(err, result) {
         if (err) {
             return next(err);
