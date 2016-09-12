@@ -4,6 +4,7 @@ var dbPool = require('../models/common').dbPool;
 var fs = require('fs');
 var path = require('path');
 var url = require('url');
+var uuid = require('uuid');
 
 var CafeObj = {
     findByOwnerLoginId : function(ownerLoginId, callback) {
@@ -469,6 +470,54 @@ var CafeObj = {
                 }
                 callback(null, results[0]);
             })
+        })
+    },
+    findIdPassword : function(ownerEmail, callback) {
+        var sql_find_owner_login_id_by_email = 'SELECT owner_login_id ownerLoginId ' +
+                                               'FROM cafe ' +
+                                               'WHERE owner_email = ?';
+        var sql_update_owner_password = 'UPDATE cafe ' +
+                                        'SET password = SHA2(?,512) ' +
+                                        'WHERE owner_email = ?';
+        var tempPassword = (uuid.v4().substring(0,8));
+
+        dbPool.logStatus();
+        dbPool.getConnection(function(err, dbConn) {
+            if (err) {
+                return callback(err);
+            }
+            var resultData = {};
+
+            async.parallel([findEmail, updatePassword], function(err, result) {
+                dbConn.release();
+                dbPool.logStatus();
+                if (err) {
+                    callback(err);
+                }
+                callback(null, resultData);
+            });
+
+            function findEmail(callback) {
+                dbConn.query(sql_find_owner_login_id_by_email, [ownerEmail], function(err, results) {
+                    if (err) {
+                        callback(err);
+                    }
+                    if (results.length === 0) {
+                        callback(new Error('해당 메일이 없습니다.'));
+                    }
+                    resultData.ownerLoginId = results[0].ownerLoginId;
+                    callback(null);
+                })
+            }
+            function updatePassword(callback) {
+                dbConn.query(sql_update_owner_password, [tempPassword, ownerEmail], function(err, results) {
+                    if (err) {
+                        callback(err);
+                    }
+                    resultData.password = tempPassword;
+                    callback(null);
+                })
+            }
         })
     }
 };

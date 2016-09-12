@@ -185,6 +185,28 @@ router.get('/me', isSecure, isAuthenticated, function(req, res, next) {
     }
 });
 
+// 아이디 비밀번호 찾기
+router.put('/find', isSecure, function(req, res, next) {
+    logger.log('debug', '-------------- find id & password --------------');
+    logger.log('debug', '%s %s://%s%s', req.method, req.protocol, req.headers['host'], req.originalUrl);
+    logger.log('debug', 'baseUrl: %s', req.baseUrl);
+    logger.log('debug', 'url: %s', req.url);
+    logger.log('debug', 'query: %j', req.query, {});
+    logger.log('debug', 'range: %s', req.headers['range']);
+    var ownerEmail = req.body.ownerEmail.trim();
+    Cafe.findIdPassword(ownerEmail, function(err, result) {
+        if (err) {
+            return next(err);
+        }
+        res.send({
+            code : 1,
+            message : '아이디 비밀번호 찾기 신청 완료',
+            result : result
+        });
+        logger.log('debug', '-------------- find id & password completed --------------');
+    });
+});
+
 // 카페 상세보기
 router.get('/:id', isAuthenticated, function(req, res, next) {
     logger.log('debug', '-------------- cafe detail info --------------');
