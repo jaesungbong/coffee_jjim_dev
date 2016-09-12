@@ -29,8 +29,8 @@ var eventObj = {
                     return callback(err);
                 }
                 for(var i = 0; i < results.length; i++){
-                    results[i].thumbnailUrl = url.resolve('http://ec2-52-78-110-229.ap-northeast-2.compute.amazonaws.com:8080', '/eventimages/' + path.basename(results[i].thumbnailUrl));
-                    results[i].imageUrl  = url.resolve('http://ec2-52-78-110-229.ap-northeast-2.compute.amazonaws.com:8080', '/eventimages/' + path.basename(results[i].imageUrl));
+                    results[i].thumbnailUrl = url.resolve('http://ec2-52-78-110-229.ap-northeast-2.compute.amazonaws.com', '/eventimages/' + path.basename(results[i].thumbnailUrl));
+                    results[i].imageUrl  = url.resolve('http://ec2-52-78-110-229.ap-northeast-2.compute.amazonaws.com', '/eventimages/' + path.basename(results[i].imageUrl));
                 }
                 callback(null, results);
             });

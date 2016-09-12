@@ -18,8 +18,9 @@ router.get('/', isAuthenticated, function(req, res, next) {
             return next(err);
         }
         res.send({
+            code : 1,
             message : '이벤트 이미지 입니다.',
-            data : results
+            result : results
         });
         logger.log('debug', '-------------- event completed --------------');
     });

@@ -139,6 +139,12 @@ router.get('/kakao/callback', isSecure, passport.authenticate('kakao'), function
 
 // 카카오 로그인
 router.get('/kakao/token', isSecure, passport.authenticate('kakao-token'), function (req, res, next) {
+    logger.log('debug', '-------------- customer login --------------');
+    logger.log('debug', '%s %s://%s%s', req.method, req.protocol, req.headers['host'], req.originalUrl);
+    logger.log('debug', 'baseUrl: %s', req.baseUrl);
+    logger.log('debug', 'url: %s', req.url);
+    logger.log('debug', 'query: %j', req.query, {});
+    logger.log('debug', 'range: %s', req.headers['range']);
     if (req.user && req.query.fcmToken) {
         var reqData = {};
         reqData.customerId = req.user.id;
@@ -150,7 +156,8 @@ router.get('/kakao/token', isSecure, passport.authenticate('kakao-token'), funct
            res.send({
                code : 1,
                message : '고객 로그인 OK!'
-           })
+           });
+            logger.log('debug', '-------------- customer login completed --------------');
         });
     } else {
         res.send({

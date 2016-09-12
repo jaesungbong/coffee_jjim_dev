@@ -188,7 +188,7 @@ router.get('/', isAuthenticated, function(req, res, next) {
             res.send({
                 code: 1,
                 message: "경매진행중인 견적서 목록입니다.",
-                data: results,
+                result: results,
                 currentPage: reqData.pageNo
             });
             logger.log('debug', '-------------- estimate list completed --------------');

@@ -25,7 +25,7 @@ var bookmarkObj = {
                 }
                 for(var i = 0; i < results.length; i++){
                     if (results[i].imageUrl) {
-                        results[i].imageUrl = url.resolve('https://ec2-52-78-110-229.ap-northeast-2.compute.amazonaws.com:4433', '/cafeimages/' + results[i].imageUrl);
+                        results[i].imageUrl = url.resolve('http://ec2-52-78-110-229.ap-northeast-2.compute.amazonaws.com', '/cafeimages/' + results[i].imageUrl);
                     }
                 }
                 callback(null, results);

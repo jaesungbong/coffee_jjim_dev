@@ -15,7 +15,7 @@ var path = require('path');
  * Get port from environment and store in Express.
  */
 
-var port = normalizePort(process.env.PORT || '8080', 10);
+var port = normalizePort(process.env.PORT || '80', 10);
 app.set('port', port);
 
 /**
@@ -40,8 +40,8 @@ httpServer.listen(port);
 httpServer.on('error', onError);
 httpServer.on('listening', onListening);
 
-httpsServer.listen(4433, function() {
-  console.log("HTTPS Listening on 4433");
+httpsServer.listen(443, function() {
+  console.log("HTTPS Listening on 443");
 }); // 첫번째매개변수는 포트번호 기본적으로 https포트는 443
 /**
  * Normalize a port into a number, string, or false.

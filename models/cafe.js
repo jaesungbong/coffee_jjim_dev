@@ -323,7 +323,7 @@ var CafeObj = {
                     }
                     if (images.length !== 0) {
                         for(var i = 0; i < images.length; i++) {
-                            images[i].imageUrl = url.resolve('http://ec2-52-78-110-229.ap-northeast-2.compute.amazonaws.com:8080', '/cafeimages/' + images[i].imageUrl);
+                            images[i].imageUrl = url.resolve('http://ec2-52-78-110-229.ap-northeast-2.compute.amazonaws.com', '/cafeimages/' + images[i].imageUrl);
                         }
                         callback(null, cafeInfo, images);
                     } else {
@@ -355,7 +355,7 @@ var CafeObj = {
                 }
                 for(var i = 0; i < results.length; i++){
                     if (results[i].imageUrl) {
-                            results[i].imageUrl = url.resolve('http://ec2-52-78-110-229.ap-northeast-2.compute.amazonaws.com:8080', '/cafeimages/' + results[i].imageUrl);
+                            results[i].imageUrl = url.resolve('http://ec2-52-78-110-229.ap-northeast-2.compute.amazonaws.com', '/cafeimages/' + results[i].imageUrl);
                     } else {
                         results[i].imageUrl = - 1;
                     }
@@ -387,7 +387,7 @@ var CafeObj = {
                 }
                 for(var i = 0; i < results.length; i++){
                     if (results[i].imageUrl) {
-                        results[i].imageUrl = url.resolve('http://ec2-52-78-110-229.ap-northeast-2.compute.amazonaws.com:8080', '/cafeimages/' + results[i].imageUrl);
+                        results[i].imageUrl = url.resolve('http://ec2-52-78-110-229.ap-northeast-2.compute.amazonaws.com', '/cafeimages/' + results[i].imageUrl);
                     } else {
                         results[i].imageUrl = - 1;
                     }
@@ -417,7 +417,7 @@ var CafeObj = {
                 }
                 for(var i = 0; i < results.length; i++){
                     if (results[i].imageUrl) {
-                        results[i].imageUrl = url.resolve('http://ec2-52-78-110-229.ap-northeast-2.compute.amazonaws.com:8080', '/cafeimages/' + results[i].imageUrl);
+                        results[i].imageUrl = url.resolve('http://ec2-52-78-110-229.ap-northeast-2.compute.amazonaws.com', '/cafeimages/' + results[i].imageUrl);
                     }
                 }
                 callback(null, results);
@@ -446,7 +446,7 @@ var CafeObj = {
                 }
                 for(var i = 0; i < results.length; i++){
                     if (results[i].imageUrl) {
-                        results[i].imageUrl = url.resolve('http://ec2-52-78-110-229.ap-northeast-2.compute.amazonaws.com:8080', '/cafeimages/' + results[i].imageUrl);
+                        results[i].imageUrl = url.resolve('http://ec2-52-78-110-229.ap-northeast-2.compute.amazonaws.com', '/cafeimages/' + results[i].imageUrl);
                     }
                 }
                 callback(null, results);

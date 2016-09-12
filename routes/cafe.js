@@ -9,6 +9,7 @@ var path = require('path');
 var async = require('async');
 var fs = require('fs');
 var logger = require('../config/logger');
+var nodemailer = require('nodemailer');
 
 //카페 회원 가입
 router.post('/', isSecure, function(req, res, next) {
@@ -22,7 +23,7 @@ router.post('/', isSecure, function(req, res, next) {
     reqData.ownerName = req.body.ownerName || 'ownerName' ;
     reqData.ownerLoginId = req.body.ownerLoginId || 'ownerLoginId';
     reqData.password = req.body.password || '1111' ;
-    reqData.ownerPhoneNumber = req.body.ownerPhoneNumber || '010-0000-0000' ;
+    reqData.ownerPhoneNumber = req.body.ownerPhoneNumber.trim() || '010-0000-0000' ;
     reqData.ownerEmail = req.body.ownerEmail || 'email@email.com';
     reqData.cafeName = req.body.cafeName || 'cafeName' ;
     reqData.cafeAddress = req.body.cafeAddress || 'cafeAddress' ;
@@ -198,12 +199,35 @@ router.put('/find', isSecure, function(req, res, next) {
         if (err) {
             return next(err);
         }
-        res.send({
-            code : 1,
-            message : '아이디 비밀번호 찾기 신청 완료',
-            result : result
+        var transporter = nodemailer.createTransport({
+            host: 'smtp.gmail.com',
+            port: 465,
+            secure: true, // use SSL
+            auth: {
+                user: process.env.NODEMAILER_EMAIL,
+                pass: process.env.NODEMAILER_PASSWORD
+            }
         });
-        logger.log('debug', '-------------- find id & password completed --------------');
+
+        var mailOptions = {
+            from: '"coffeeJjim" <master@coffeejjim.com>', // sender address
+            to: ownerEmail, // list of receivers
+            subject: '커피찜 아이디 임시 비밀번호', // Subject line
+            html: '<h1>커피찜 아이디 임시 비밀번호</h1><BR>' +
+                  '<B>아이디 : </B>' + result.ownerLoginId +'<BR>' +
+                  '<B>비밀번호 : </B>' + result.password
+        };
+
+        transporter.sendMail(mailOptions, function(error, info){
+            if(error){
+                return next(error);
+            }
+            res.send({
+                code : 1,
+                message : '아이디 비밀번호 찾기 신청 완료',
+            });
+            logger.log('debug', '-------------- find id & password completed --------------');
+        });
     });
 });
 
