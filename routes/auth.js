@@ -83,6 +83,7 @@ router.post('/local/login', isSecure, function(req, res, next) {
     logger.log('debug', '%s %s://%s%s', req.method, req.protocol, req.headers['host'], req.originalUrl);
     logger.log('debug', 'baseUrl: %s', req.baseUrl);
     logger.log('debug', 'url: %s', req.url);
+    logger.log('debug', 'body: %j', req.body, {});
     logger.log('debug', 'query: %j', req.query, {});
     logger.log('debug', 'range: %s', req.headers['range']);
     passport.authenticate('local', function(err, user) {
@@ -91,7 +92,7 @@ router.post('/local/login', isSecure, function(req, res, next) {
         }
         if (!user) {
             return res.status(401).send({
-                code : 2,
+                code : 0,
                 message: '로그인 실패'
             });
         }
@@ -125,10 +126,14 @@ router.get('/local/logout', isAuthenticated, function(req, res, next) {
     logger.log('debug', '%s %s://%s%s', req.method, req.protocol, req.headers['host'], req.originalUrl);
     logger.log('debug', 'baseUrl: %s', req.baseUrl);
     logger.log('debug', 'url: %s', req.url);
+    logger.log('debug', 'body: %j', req.body, {});
     logger.log('debug', 'query: %j', req.query, {});
     logger.log('debug', 'range: %s', req.headers['range']);
     req.logout();
-    res.send({ message: '로그아웃!' });
+    res.send({
+        code : 1,
+        message: '로그아웃!'
+    });
     logger.log('debug', '-------------- logout completed --------------');
 });
 
@@ -143,6 +148,7 @@ router.get('/kakao/token', isSecure, passport.authenticate('kakao-token'), funct
     logger.log('debug', '%s %s://%s%s', req.method, req.protocol, req.headers['host'], req.originalUrl);
     logger.log('debug', 'baseUrl: %s', req.baseUrl);
     logger.log('debug', 'url: %s', req.url);
+    logger.log('debug', 'body: %j', req.body, {});
     logger.log('debug', 'query: %j', req.query, {});
     logger.log('debug', 'range: %s', req.headers['range']);
     if (req.user && req.query.fcmToken) {
@@ -161,7 +167,7 @@ router.get('/kakao/token', isSecure, passport.authenticate('kakao-token'), funct
         });
     } else {
         res.send({
-            code : 2,
+            code : 0,
             message : '고객 로그인 실패'
         })
     }

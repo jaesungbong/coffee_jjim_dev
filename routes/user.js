@@ -10,6 +10,7 @@ router.get('/me', isAuthenticated, function(req, res, next) {
     logger.log('debug', '%s %s://%s%s', req.method, req.protocol, req.headers['host'], req.originalUrl);
     logger.log('debug', 'baseUrl: %s', req.baseUrl);
     logger.log('debug', 'url: %s', req.url);
+    logger.log('debug', 'body: %j', req.body, {});
     logger.log('debug', 'query: %j', req.query, {});
     logger.log('debug', 'range: %s', req.headers['range']);
     var reqData = req.user;
@@ -32,10 +33,11 @@ router.put('/me', isAuthenticated, function(req, res, next) {
     logger.log('debug', '%s %s://%s%s', req.method, req.protocol, req.headers['host'], req.originalUrl);
     logger.log('debug', 'baseUrl: %s', req.baseUrl);
     logger.log('debug', 'url: %s', req.url);
+    logger.log('debug', 'body: %j', req.body, {});
     logger.log('debug', 'query: %j', req.query, {});
     logger.log('debug', 'range: %s', req.headers['range']);
     var reqData = req.user;
-    reqData.auctionRange = parseInt(req.body.auctionRange || 1);
+    reqData.auctionRange = parseFloat(req.body.auctionRange || 1);
     User.setAuctionRange(reqData, function(err, result) {
         if (err) {
             return next(err);

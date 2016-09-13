@@ -11,6 +11,7 @@ router.get('/', isAuthenticated, function(req, res, next) {
     logger.log('debug', '%s %s://%s%s', req.method, req.protocol, req.headers['host'], req.originalUrl);
     logger.log('debug', 'baseUrl: %s', req.baseUrl);
     logger.log('debug', 'url: %s', req.url);
+    logger.log('debug', 'body: %j', req.body, {});
     logger.log('debug', 'query: %j', req.query, {});
     logger.log('debug', 'range: %s', req.headers['range']);
     Event.getEvents(function (err, results) {

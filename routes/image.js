@@ -13,6 +13,7 @@ router.put('/', isAuthenticated, function(req, res, next) {
     logger.log('debug', '%s %s://%s%s', req.method, req.protocol, req.headers['host'], req.originalUrl);
     logger.log('debug', 'baseUrl: %s', req.baseUrl);
     logger.log('debug', 'url: %s', req.url);
+    logger.log('debug', 'body: %j', req.body, {});
     logger.log('debug', 'query: %j', req.query, {});
     logger.log('debug', 'range: %s', req.headers['range']);
     var form = new formidable.IncomingForm();
@@ -51,6 +52,7 @@ router.put('/', isAuthenticated, function(req, res, next) {
                         return next(err);
                     }
                     res.send({
+                        code : 1,
                         message: '이미지 업로드 완료!',
                     });
                     logger.log('debug', '-------------- image upload & edit completed --------------');

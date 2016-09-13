@@ -10,6 +10,7 @@ router.get('/', isAuthenticated, function(req, res, next) {
     logger.log('debug', '%s %s://%s%s', req.method, req.protocol, req.headers['host'], req.originalUrl);
     logger.log('debug', 'baseUrl: %s', req.baseUrl);
     logger.log('debug', 'url: %s', req.url);
+    logger.log('debug', 'body: %j', req.body, {});
     logger.log('debug', 'query: %j', req.query, {});
     logger.log('debug', 'range: %s', req.headers['range']);
     if(req.url.match(/\/?pageNo=\d+&rowCount=\d+/i)) {
@@ -19,6 +20,7 @@ router.get('/', isAuthenticated, function(req, res, next) {
         reqData.rowCount = parseInt(req.query.rowCount) || 10;
         Bookmark.getBookmarkCafe(reqData, function(err, result) {
             res.send({
+                code : 1,
                 message : "즐겨 찾기 카페 입니다.",
                 result : result,
                 currentPage: reqData.pageNo
@@ -34,16 +36,18 @@ router.post('/', isAuthenticated, function(req, res, next) {
     logger.log('debug', '%s %s://%s%s', req.method, req.protocol, req.headers['host'], req.originalUrl);
     logger.log('debug', 'baseUrl: %s', req.baseUrl);
     logger.log('debug', 'url: %s', req.url);
+    logger.log('debug', 'body: %j', req.body, {});
     logger.log('debug', 'query: %j', req.query, {});
     logger.log('debug', 'range: %s', req.headers['range']);
     var reqData = {};
     reqData.customerId = req.user.id;
-    reqData.cafeId = req.body.cafeId || 0;
+    reqData.cafeId = req.body.cafeId || - 1;
     Bookmark.addCafe(reqData, function(err, result) {
         if (err) {
             return next(err);
         }
         res.send({
+            code : 1,
             message : "즐겨찾기 추가"
         });
         logger.log('debug', '-------------- bookmark add completed --------------');
@@ -56,6 +60,7 @@ router.delete('/:bid', isAuthenticated, function(req, res, next) {
     logger.log('debug', '%s %s://%s%s', req.method, req.protocol, req.headers['host'], req.originalUrl);
     logger.log('debug', 'baseUrl: %s', req.baseUrl);
     logger.log('debug', 'url: %s', req.url);
+    logger.log('debug', 'body: %j', req.body, {});
     logger.log('debug', 'query: %j', req.query, {});
     logger.log('debug', 'range: %s', req.headers['range']);
     var reqData = {};
@@ -66,6 +71,7 @@ router.delete('/:bid', isAuthenticated, function(req, res, next) {
             return next(err);
         }
         res.send({
+            code : 1,
             message : "즐겨찾기 제거"
         });
         logger.log('debug', '-------------- bookmark remove completed --------------');

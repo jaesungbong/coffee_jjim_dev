@@ -17,20 +17,21 @@ router.post('/', isSecure, function(req, res, next) {
     logger.log('debug', '%s %s://%s%s', req.method, req.protocol, req.headers['host'], req.originalUrl);
     logger.log('debug', 'baseUrl: %s', req.baseUrl);
     logger.log('debug', 'url: %s', req.url);
+    logger.log('debug', 'body: %j', req.body, {});
     logger.log('debug', 'query: %j', req.query, {});
     logger.log('debug', 'range: %s', req.headers['range']);
     var reqData = {};
-    reqData.ownerName = req.body.ownerName || 'ownerName' ;
-    reqData.ownerLoginId = req.body.ownerLoginId || 'ownerLoginId';
-    reqData.password = req.body.password || '1111' ;
-    reqData.ownerPhoneNumber = req.body.ownerPhoneNumber.trim() || '010-0000-0000' ;
-    reqData.ownerEmail = req.body.ownerEmail || 'email@email.com';
-    reqData.cafeName = req.body.cafeName || 'cafeName' ;
-    reqData.cafeAddress = req.body.cafeAddress || 'cafeAddress' ;
-    reqData.latitude = parseFloat(req.body.latitude || 37.552788)  ;
-    reqData.longitude = parseFloat(req.body.longitude || 126.981328);
-    reqData.cafePhoneNumber = req.body.cafePhoneNumber || '010-1234-4567';
-    reqData.fcmToken = req.body.fcmToken || '1111' ;
+    reqData.ownerName = req.body.ownerName.trim() || '' ;
+    reqData.ownerLoginId = req.body.ownerLoginId || '';
+    reqData.password = req.body.password || '' ;
+    reqData.ownerPhoneNumber = req.body.ownerPhoneNumber.trim() || '' ;
+    reqData.ownerEmail = req.body.ownerEmail || '';
+    reqData.cafeName = req.body.cafeName || '' ;
+    reqData.cafeAddress = req.body.cafeAddress || '' ;
+    reqData.latitude = parseFloat(req.body.latitude || 0)  ;
+    reqData.longitude = parseFloat(req.body.longitude || 0);
+    reqData.cafePhoneNumber = req.body.cafePhoneNumber || '';
+    reqData.fcmToken = req.body.fcmToken || '' ;
     Cafe.registerCafe(reqData, function (err, result) {
         if (err) {
             return next(err);
@@ -49,6 +50,7 @@ router.get('/', isAuthenticated, function(req, res, next) {
     logger.log('debug', '%s %s://%s%s', req.method, req.protocol, req.headers['host'], req.originalUrl);
     logger.log('debug', 'baseUrl: %s', req.baseUrl);
     logger.log('debug', 'url: %s', req.url);
+    logger.log('debug', 'body: %j', req.body, {});
     logger.log('debug', 'query: %j', req.query, {});
     logger.log('debug', 'range: %s', req.headers['range']);
     var keyword = req.query.keyword;
@@ -99,6 +101,7 @@ router.get('/checkid', function(req, res, next) {
     logger.log('debug', '%s %s://%s%s', req.method, req.protocol, req.headers['host'], req.originalUrl);
     logger.log('debug', 'baseUrl: %s', req.baseUrl);
     logger.log('debug', 'url: %s', req.url);
+    logger.log('debug', 'body: %j', req.body, {});
     logger.log('debug', 'query: %j', req.query, {});
     logger.log('debug', 'range: %s', req.headers['range']);
     var idToCheck = req.query.ownerLoginId || 0 ;
@@ -120,10 +123,12 @@ router.get('/best5', isAuthenticated, function(req, res, next) {
     logger.log('debug', '%s %s://%s%s', req.method, req.protocol, req.headers['host'], req.originalUrl);
     logger.log('debug', 'baseUrl: %s', req.baseUrl);
     logger.log('debug', 'url: %s', req.url);
+    logger.log('debug', 'body: %j', req.body, {});
     logger.log('debug', 'query: %j', req.query, {});
     logger.log('debug', 'range: %s', req.headers['range']);
     Cafe.getBest5Cafe(function (err, results) {
         res.send({
+            code : 1,
             message : 'best5 카페 입니다.',
             result : results
         });
@@ -137,10 +142,12 @@ router.get('/new5', isAuthenticated, function(req, res, next) {
     logger.log('debug', '%s %s://%s%s', req.method, req.protocol, req.headers['host'], req.originalUrl);
     logger.log('debug', 'baseUrl: %s', req.baseUrl);
     logger.log('debug', 'url: %s', req.url);
+    logger.log('debug', 'body: %j', req.body, {});
     logger.log('debug', 'query: %j', req.query, {});
     logger.log('debug', 'range: %s', req.headers['range']);
     Cafe.getNewCafe(function (err, results) {
         res.send({
+            code : 1,
             message : 'new 카페 입니다.',
             result : results
         });
@@ -154,6 +161,7 @@ router.get('/me', isSecure, isAuthenticated, function(req, res, next) {
     logger.log('debug', '%s %s://%s%s', req.method, req.protocol, req.headers['host'], req.originalUrl);
     logger.log('debug', 'baseUrl: %s', req.baseUrl);
     logger.log('debug', 'url: %s', req.url);
+    logger.log('debug', 'body: %j', req.body, {});
     logger.log('debug', 'query: %j', req.query, {});
     logger.log('debug', 'range: %s', req.headers['range']);
     var type = parseInt(req.query.type || 2);
@@ -192,6 +200,7 @@ router.put('/find', isSecure, function(req, res, next) {
     logger.log('debug', '%s %s://%s%s', req.method, req.protocol, req.headers['host'], req.originalUrl);
     logger.log('debug', 'baseUrl: %s', req.baseUrl);
     logger.log('debug', 'url: %s', req.url);
+    logger.log('debug', 'body: %j', req.body, {});
     logger.log('debug', 'query: %j', req.query, {});
     logger.log('debug', 'range: %s', req.headers['range']);
     var ownerEmail = req.body.ownerEmail.trim();
@@ -237,6 +246,7 @@ router.get('/:id', isAuthenticated, function(req, res, next) {
     logger.log('debug', '%s %s://%s%s', req.method, req.protocol, req.headers['host'], req.originalUrl);
     logger.log('debug', 'baseUrl: %s', req.baseUrl);
     logger.log('debug', 'url: %s', req.url);
+    logger.log('debug', 'body: %j', req.body, {});
     logger.log('debug', 'query: %j', req.query, {});
     logger.log('debug', 'range: %s', req.headers['range']);
     Cafe.getCafeInfo(req.params.id, function(err, result) {
@@ -244,6 +254,7 @@ router.get('/:id', isAuthenticated, function(req, res, next) {
             return next(err);
         }
         res.send({
+            code : 1,
             message : '카페 정보 입니다.',
             result : result
         });
@@ -257,6 +268,7 @@ router.put('/me', isSecure, isAuthenticated, function(req, res, next) {
     logger.log('debug', '%s %s://%s%s', req.method, req.protocol, req.headers['host'], req.originalUrl);
     logger.log('debug', 'baseUrl: %s', req.baseUrl);
     logger.log('debug', 'url: %s', req.url);
+    logger.log('debug', 'body: %j', req.body, {});
     logger.log('debug', 'query: %j', req.query, {});
     logger.log('debug', 'range: %s', req.headers['range']);
     var reqData = {};

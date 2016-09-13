@@ -163,7 +163,7 @@ var CafeObj = {
                     return callback(err);
                 }
                 if (result.length !== 0) {
-                    return callback(null, 2, '사용 불가능');
+                    return callback(null, 0, '사용 불가능');
                 }
                 callback(null, 1, '사용 가능');
             })
@@ -425,7 +425,7 @@ var CafeObj = {
         })
     },
     getNewCafe : function(callback) {
-        var sql_select_new_cafe = 'SELECT c.id id, i.image_name imageUrl ' +
+        var sql_select_new_cafe = 'SELECT DISTINCT c.id id, i.image_name imageUrl ' +
                                   'FROM user u JOIN cafe c ON (u.id = c.user_id) ' +
                                               'JOIN image i ON (i.cafe_id = c.id) ' +
                                   'WHERE SUBDATE(now(), INTERVAL 30 DAY) < reg_date ' +

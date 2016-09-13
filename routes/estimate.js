@@ -14,6 +14,7 @@ router.post('/', isAuthenticated, function(req, res, next) {
     logger.log('debug', '%s %s://%s%s', req.method, req.protocol, req.headers['host'], req.originalUrl);
     logger.log('debug', 'baseUrl: %s', req.baseUrl);
     logger.log('debug', 'url: %s', req.url);
+    logger.log('debug', 'body: %j', req.body, {});
     logger.log('debug', 'query: %j', req.query, {});
     logger.log('debug', 'range: %s', req.headers['range']);
     var estimateData={};
@@ -29,27 +30,30 @@ router.post('/', isAuthenticated, function(req, res, next) {
     estimateData.socket = parseInt(req.body.socket || 0);
     Estimate.writeEstimate(estimateData, function(err, result) {
         if (err) {
-            return next(err);
+            return res.send({
+                code : 0,
+                message : err.message
+            });
         }
         // 견적서가 도착할 카페들에게 보낼 메세지
         var messageToCafe = new fcm.Message({
             data: {
-                key1 : JSON.stringify(result.estimateId), //견적서 id
-                key2 : JSON.stringify(result.nickname), //고객 닉네임
-                key3 : JSON.stringify(result.auctionStartTime), // 경매 시작 날짜 시간
-                key4 : JSON.stringify(result.deadlineTime), //마감 날짜 시간
-                key5 : JSON.stringify(result.reservationTime), //예약 날짜 시간
-                key6 : JSON.stringify(result.people), // 인원
-                key7 : JSON.stringify(result.wifi), //와이파이
-                key8 : JSON.stringify(result.days), //24시간
-                key9 : JSON.stringify(result.parking), // 주차
-                key10 : JSON.stringify(result.socket), // 콘센트
-                key11 : JSON.stringify(result.proposalState) //입찰 상태
+                // key1 : JSON.stringify(result.estimateId), //견적서 id
+                // key2 : JSON.stringify(result.nickname), //고객 닉네임
+                // key3 : JSON.stringify(result.auctionStartTime), // 경매 시작 날짜 시간
+                // key4 : JSON.stringify(result.deadlineTime), //마감 날짜 시간
+                // key5 : JSON.stringify(result.reservationTime), //예약 날짜 시간
+                // key6 : JSON.stringify(result.people), // 인원
+                // key7 : JSON.stringify(result.wifi), //와이파이
+                // key8 : JSON.stringify(result.days), //24시간
+                // key9 : JSON.stringify(result.parking), // 주차
+                // key10 : JSON.stringify(result.socket), // 콘센트
+                // key11 : JSON.stringify(result.proposalState) //입찰 상태
             },
             notification: {
-                title : '견적서 도착',
+                title : 'COFFEE JJIM',
                 icon : 'ic-launcher',
-                body : '견적서 도착'
+                body : '견적서가 도착했습니다.'
             }
         });
 
@@ -123,6 +127,7 @@ router.get('/booked', isSecure, isAuthenticated, function(req, res, next) {
     logger.log('debug', '%s %s://%s%s', req.method, req.protocol, req.headers['host'], req.originalUrl);
     logger.log('debug', 'baseUrl: %s', req.baseUrl);
     logger.log('debug', 'url: %s', req.url);
+    logger.log('debug', 'body: %j', req.body, {});
     logger.log('debug', 'query: %j', req.query, {});
     logger.log('debug', 'range: %s', req.headers['range']);
     var timeZone = "Asia/Seoul";
@@ -168,17 +173,44 @@ router.get('/booked', isSecure, isAuthenticated, function(req, res, next) {
     }
 });
 
+// 예약된 견적서 보기
+router.get('/:eid/proposals/:pid', isSecure, isAuthenticated, function(req, res, next) {
+    logger.log('debug', '-------------- booked estimate info --------------');
+    logger.log('debug', '%s %s://%s%s', req.method, req.protocol, req.headers['host'], req.originalUrl);
+    logger.log('debug', 'baseUrl: %s', req.baseUrl);
+    logger.log('debug', 'url: %s', req.url);
+    logger.log('debug', 'body: %j', req.body, {});
+    logger.log('debug', 'query: %j', req.query, {});
+    logger.log('debug', 'range: %s', req.headers['range']);
+    var reqData = {};
+    reqData.cafeId = req.user.id;
+    reqData.estimateId = parseInt(req.params.eid);
+    reqData.proposalId = parseInt(req.params.pid);
+    Estimate.getBookedEstimateInfo(reqData, function (err, results) {
+        if (err) {
+            return next(err);
+        }
+        res.send({
+            code: 1,
+            message: "예약 견적서.",
+            result: results,
+        });
+        logger.log('debug', '-------------- booked estimate info completed --------------');
+    });
+});
+
 // 견적서 목록
 router.get('/', isAuthenticated, function(req, res, next) {
     logger.log('debug', '-------------- estimate list --------------');
     logger.log('debug', '%s %s://%s%s', req.method, req.protocol, req.headers['host'], req.originalUrl);
     logger.log('debug', 'baseUrl: %s', req.baseUrl);
     logger.log('debug', 'url: %s', req.url);
+    logger.log('debug', 'body: %j', req.body, {});
     logger.log('debug', 'query: %j', req.query, {});
     logger.log('debug', 'range: %s', req.headers['range']);
     if(req.url.match(/\/?pageNo=\d+&rowCount=\d+/i)) {
         var reqData = {};
-        reqData.id = parseInt(req.user.id || 0);
+        reqData.id = req.user.id;
         reqData.pageNo = parseInt(req.query.pageNo || 1);
         reqData.rowCount = parseInt(req.query.rowCount || 10);
         Estimate.getEstimateList(reqData, function (err, results) {

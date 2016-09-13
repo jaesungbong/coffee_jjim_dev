@@ -87,7 +87,7 @@ var estimateObj = {
                         return callback(err);
                     }
                     if (results.length !== 0) {
-                        return callback(new Error('당신은 이미 진행중인 경매가 있습니다.'));
+                        return callback(new Error('이미 진행중인 경매가 있습니다.'));
                     }
                     callback(null);
                 })
@@ -135,7 +135,7 @@ var estimateObj = {
                         resultData.id =[];
                         resultData.cafeFcmToken = [];
                         if (results.length === 0) {
-                            return callback(new Error('견적서의 거리 조건에 맞는 카페를 찾지 못했습니다.')); //거리 때문에 전달X
+                            return callback(new Error('견적서의 거리에 맞는 카페를 찾지 못했습니다.')); //거리 때문에 전달X
                         }
                         for(var i = 0; i < results.length; i++) {
                             var resultsOptions = results[i].wifi.toString() + results[i].days.toString() + results[i].parking.toString() + results[i].socket.toString();
@@ -293,6 +293,25 @@ var estimateObj = {
                 }
                 callback(null, results);
             });
+        });
+    },
+    // 예약 견적서 보기
+    getBookedEstimateInfo : function(reqData, callback) {
+        var sql_select_booked_estimate_info = 'SELECT DATE_FORMAT(CONVERT_TZ(e.reservation_time, \'+00:00\', \'+09:00\'), \'%Y-%m-%d %H:%i:%s\') reservationTime, e.people, e.wifi, e.days, e.parking, e.socket, c.nickname, c.phone_number phoneNumber, p.bid_price bidPrice ' +
+                                              'FROM estimate e JOIN proposal p ON (e.id = p.estimate_id) ' +
+                                                              'JOIN customer c ON (c.id = e.customer_id) ' +
+                                              'WHERE estimate_id = ? AND p.id = ?';
+        dbPool.getConnection(function(err, dbConn) {
+           if (err) {
+               return callback(err);
+           }
+           dbConn.query(sql_select_booked_estimate_info, [reqData.estimateId, reqData.proposalId], function(err, results) {
+               dbConn.release();
+               if (err) {
+                   return callback(err);
+               }
+               callback(null, results[0]);
+           });
         });
     }
 };
