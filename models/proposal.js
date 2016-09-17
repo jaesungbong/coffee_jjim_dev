@@ -1,8 +1,6 @@
 var mysql = require('mysql');
 var async = require('async');
 var dbPool = require('../models/common').dbPool;
-var Cafe = require('../models/cafe');
-var User = require('../models/user');
 var url = require('url');
 
 var objProposal = {
@@ -21,26 +19,30 @@ var objProposal = {
         // 견적서를 입찰하기
         var sql_insert_proposal = 'INSERT INTO proposal(estimate_id, cafe_id, bid_price) ' +
                                   'VALUES(?, ?, ?)';
-        var fcmData = {};
+
+        var select_customer_fcm_token = 'SELECT u.fcm_token fcmToken ' +
+                                        'FROM estimate e JOIN customer c ON (e.customer_id = c.id) ' +
+                                                        'JOIN user u ON (c.user_id = u.id) ' +
+                                        'WHERE e.id = ?';
 
         dbPool.logStatus();
         dbPool.getConnection(function(err, dbConn) {
             if (err) {
                 return callback(err);
             }
-            fcmData.bidPrice = reqData.bidPrice;
 
-            async.series([checkDelivered, checkProposaled, setProposal, getProposalInfo], function (err, results) {
+            var customerFcmToken = [];
+
+            async.series([checkDelivered, checkProposaled, setProposal, getCustomerFcmToken], function (err, results) {
                 dbConn.release();
                 dbPool.logStatus();
                 if (err) {
                         return callback(err);
                 }
-                callback(null, fcmData);
+                callback(null, customerFcmToken);
             });
-
             function checkDelivered(callback) {
-                dbConn.query(sql_select_delivery, [reqData.estimateId, reqData.id], function(err, results) {
+                dbConn.query(sql_select_delivery, [reqData.estimateId, reqData.cafeId], function(err, results) {
                     if (err) {
                         return callback(err);
                     } else if (results.length === 0) {
@@ -49,9 +51,8 @@ var objProposal = {
                     callback(null);
                 });
             }
-
             function checkProposaled(callback) {
-                dbConn.query(sql_select_proposal, [reqData.estimateId, reqData.id], function(err, results) {
+                dbConn.query(sql_select_proposal, [reqData.estimateId, reqData.cafeId], function(err, results) {
                     if (err) {
                         return callback(err);
                     } else if (results.length !== 0) {
@@ -60,98 +61,27 @@ var objProposal = {
                     callback(null);
                 });
             }
-
             // 입찰 테이블에 insert!
             function setProposal(callback){
-                dbConn.query(sql_insert_proposal, [reqData.estimateId, reqData.id, reqData.bidPrice], function(err, results) {
+                dbConn.query(sql_insert_proposal, [reqData.estimateId, reqData.cafeId, reqData.bidPrice], function(err, results) {
                     if (err) {
                         return callback(err);
                     }
-                    fcmData.proposalId = results.insertId;
                     callback(null);
                 });
             }
-
-            // 고객에게 보낼 입찰서의 정보를 parallel로 처리해 모두 가져온다.
-            function getProposalInfo(callback) {
-                async.parallel([getCustomerFcmToken, getCafeInfo, getDistance], function (err, results) {
-                    if (err) {
-                        return next(err);
-                    }
-                    callback(null);
-                });
-            }
-
             // 고객의 fcm 토큰 받아오기
             function getCustomerFcmToken(callback) {
-                User.getCustomerFcmTokenByEstimateId(reqData.estimateId, function(err, result) {
+                dbConn.query(select_customer_fcm_token, [reqData.estimateId], function(err, results) {
                     if (err) {
-                        return next(err);
+                        return callback(err);
                     }
-                    fcmData.customerFcmToken = [];
-                    fcmData.customerFcmToken.push(result);
+                    customerFcmToken.push(results[0].fcmToken);
                     callback(null);
                 });
             }
-
-            // 자신의 카페 정보 받아오기
-            function getCafeInfo(callback) {
-                Cafe.getCafeInfo(reqData.id, function(err, result) {
-                    if (err) {
-                        return next(err);
-                    }
-                    fcmData.id = result.cafeInfo.id;
-                    fcmData.cafeName = result.cafeInfo.cafeName;
-                    fcmData.cafeAddress = result.cafeInfo.cafeAddress;
-                    fcmData.wifi = result.cafeInfo.wifi;
-                    fcmData.days = result.cafeInfo.days;
-                    fcmData.parking = result.cafeInfo.parking;
-                    fcmData.socket = result.cafeInfo.socket;
-                    if (!result.images) {
-                        fcmData.imageUrl = -1;
-                    } else {
-                        fcmData.imageUrl = result.images[0].imageUrl;
-                    }
-                    callback(null);
-                });
-            }
-
-            // 입찰서와 자기 카페의 거리 받아오기
-            function getDistance(callback) {
-                objProposal.getDistanceBetweenEstimateAndCafe(fcmData.proposalId, function(err, result) {
-                    if (err) {
-                        return next(err);
-                    }
-                    fcmData.distance = result;
-                    callback(null);
-                })
-            }
         });
     },
-
-    // 입찰서와 카페의 거리
-    getDistanceBetweenEstimateAndCafe : function(proposalId, callback) {
-        var sql_select_distance = 'SELECT round(6371 * acos(cos(radians(y(e.location))) * cos(radians(y(c.location))) * cos(radians(x(c.location)) - radians(x(e.location))) + sin(radians(y(e.location))) * sin(radians(y(c.location)))), 2) AS distance ' +
-                                  'FROM estimate e JOIN proposal p ON (e.id = p.estimate_id) ' +
-                                                  'JOIN cafe c ON (c.id = p.cafe_id) ' +
-                                  'WHERE p.id = ?';
-
-        dbPool.logStatus();
-        dbPool.getConnection(function(err, dbConn) {
-            if (err) {
-                return callback(err);
-            }
-            dbConn.query(sql_select_distance, [proposalId], function(err, results) {
-                dbConn.release();
-                dbPool.logStatus();
-                if (err) {
-                    return callback(err);
-                }
-                callback(null, results[0].distance);
-            });
-        });
-    },
-
     // 입찰서 카페 목록
     getProposalList : function(reqData, callback) {
         var sql_select_proposal_list = 'SELECT p.id proposalId, ' +
@@ -226,17 +156,11 @@ var objProposal = {
                                                             'JOIN user u ON (u.id = c.user_id) ' +
                                             'WHERE p.proposal_state = 1 AND p.estimate_id = ?';
 
-        // 유찰카페들의 fcm 토큰 받아오기 placeHolder = 견적서 ID
-        var sql_select_no_bid_cafe_fcm_token = 'SELECT u.fcm_token noBidCafeFcmToken ' +
+        // 유찰카페들의 fcm 토큰, 입찰서 ID 받아오기 placeHolder = 견적서 ID
+        var sql_select_no_bid_cafe_fcm_token = 'SELECT p.id proposalId, u.fcm_token noBidCafeFcmToken ' +
                                                'FROM proposal p JOIN cafe c ON (p.cafe_id = c.id) ' +
-                                                               'JOIN user u ON (u.id = c.user_id) ' +
+                                               'JOIN user u ON (u.id = c.user_id) ' +
                                                'WHERE p.proposal_state = 2 AND p.estimate_id = ?';
-
-        // 예약 정보 받아오기 placeHolder = proposalID, estimateID
-        var sql_select_reservation_info = 'SELECT DATE_FORMAT(CONVERT_TZ(e.auction_start_time, \'+00:00\', \'+09:00\'), \'%Y-%m-%d %H:%i:%s\') auctionStartTime, DATE_FORMAT(CONVERT_TZ(e.reservation_time, \'+00:00\', \'+09:00\'), \'%Y-%m-%d %H:%i:%s\') reservationTime, e.people, e.wifi, e.days, e.parking, e.socket, c.nickname, c.phone_number phoneNumber, p.bid_price bidPrice ' +
-                                          'FROM estimate e JOIN proposal p ON (e.id = p.estimate_id) ' +
-                                                          'JOIN customer c ON (c.id = e.customer_id) ' +
-                                          'WHERE estimate_id = ? AND p.id = ?';
 
         dbPool.logStatus();
         dbPool.getConnection(function(err, dbConn) {
@@ -289,8 +213,7 @@ var objProposal = {
                         doChangeEstimateState,
                         doChangeNoBidProposalState,
                         getBidCafeFcmToken,
-                        getNoBidCafeFcmToken,
-                        getReservationInfo], function (err, results) {
+                        getNoBidCafeFcmToken], function (err, results) {
                         if (err) {
                             return callback(err);
                         }
@@ -331,20 +254,13 @@ var objProposal = {
                             if (err) {
                                 return callback(err);
                             }
-                            resultData.noBidCafeFcmTokens = [];
+                            resultData.noBidCafes = [];
                             for(var i = 0; i < results.length; i ++) {
-                                resultData.noBidCafeFcmTokens.push(results[i].noBidCafeFcmToken);
+                                var noBidCafe = {};
+                                noBidCafe.fcmToken = results[i].noBidCafeFcmToken;
+                                noBidCafe.proposalId = results[i].proposalId;
+                                resultData.noBidCafes.push(noBidCafe);
                             }
-                            callback(null);
-                        });
-                    }
-
-                    function getReservationInfo(callback) {
-                        dbConn.query(sql_select_reservation_info, [resultData.estimateId, reqData.proposalId], function(err, results) {
-                            if (err) {
-                                return callback(err);
-                            }
-                            resultData.reservationInfo = results[0];
                             callback(null);
                         });
                     }

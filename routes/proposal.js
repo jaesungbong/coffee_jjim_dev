@@ -4,6 +4,7 @@ var isAuthenticated = require('./common').isAuthenticated;
 var Proposal = require('../models/proposal');
 var fcm = require('node-gcm');
 var logger = require('../config/logger');
+var async = require('async');
 
 // 입찰하기
 router.post('/', isAuthenticated, function(req, res, next) {
@@ -15,7 +16,7 @@ router.post('/', isAuthenticated, function(req, res, next) {
     logger.log('debug', 'query: %j', req.query, {});
     logger.log('debug', 'range: %s', req.headers['range']);
     var reqData = {};
-    reqData.id = req.user.id;
+    reqData.cafeId = req.user.id;
     reqData.estimateId = parseInt(req.body.estimateId || 0);
     reqData.bidPrice = parseInt(req.body.bidPrice || 0);
     Proposal.doProposal(reqData, function(err, result) {
@@ -26,19 +27,6 @@ router.post('/', isAuthenticated, function(req, res, next) {
             });
         }
         var messageToCustomer = new fcm.Message({
-            data : {
-                // key1 : result.proposalId,
-                // key2 : result.id,
-                // key3 : result.cafeName,
-                // key4 : result.cafeAddress,
-                // key5 : result.imageUrl,
-                // key6 : result.wifi,
-                // key7 : result.days,
-                // key8 : result.parking,
-                // key9 : result.socket,
-                // key10 : result.distance,
-                // key11 : result.bidPrice
-            },
             notification: {
                 title : 'COFFEE JJIM',
                 icon : 'ic-launcher',
@@ -47,11 +35,11 @@ router.post('/', isAuthenticated, function(req, res, next) {
         });
         var senderToCustomer = new fcm.Sender(process.env.FCM_KEY);
 
-        senderToCustomer.send(messageToCustomer, {registrationTokens : result.customerFcmToken}, function(err, response) {
+        senderToCustomer.send(messageToCustomer, {registrationTokens : result}, function(err, response) {
             if (err) {
                 logger.log('debug', 'send to customer err : %j', err, {});
             }
-            res.send(response, {
+            res.send({
                 code : 1,
                 message : '입찰 완료'
             });
@@ -110,7 +98,7 @@ router.put('/:pid', isAuthenticated, function(req, res, next) {
         var messageToBidCafe = new fcm.Message({
             data: {
                 key1 : JSON.stringify(result.estimateId), // 견적서 id
-                key2 : JSON.stringify(reqData.proposalId), // 입찰서 id
+                key2 : JSON.stringify(reqData.proposalId) // 입찰서 id
             },
             notification: {
                 title : 'COFFEE JJIM',
@@ -119,24 +107,8 @@ router.put('/:pid', isAuthenticated, function(req, res, next) {
             }
         });
 
-        // 유찰 카페에게 보낼 메세지
-        var messageToNoBidCafe = new fcm.Message({
-            data: {
-                // key1 : JSON.stringify(result.estimateId),
-                // key2 : '유찰'
-            },
-            notification: {
-                title : 'COFFEE JJIM',
-                icon : 'ic-launcher',
-                body : '죄송합니다. 카페가 유찰되었습니다.'
-            }
-        });
-
         // 낙찰 카페들에게 보낼 샌더
         var senderToBidCafe = new fcm.Sender(process.env.FCM_KEY);
-
-        // 유찰 카페에게 보낼 샌더
-        var senderToNoBidCafe = new fcm.Sender(process.env.FCM_KEY);
 
         // 낙찰 카페들에게 send
         senderToBidCafe.send(messageToBidCafe, {registrationTokens: result.bidCafeFcmTokens}, function(err, response) {
@@ -144,19 +116,43 @@ router.put('/:pid', isAuthenticated, function(req, res, next) {
                 logger.log('debug', 'send to bid cafe err : &j', err, {});
             }
             logger.log('debug', 'send to bid cafe response : &j', response, {});
-
-            // 유찰 카페들에게 send
-            senderToNoBidCafe.send(messageToNoBidCafe, {registrationTokens: result.noBidCafeFcmTokens}, function(err, response) {
+            logger.log('debug', 'send to bid cafe completed');
+            async.each(result.noBidCafes, function(item, callback) {
+                // 유찰 카페에게 보낼 메세지
+                var messageToNoBidCafe = new fcm.Message({
+                    data: {
+                        key1 : JSON.stringify(result.estimateId), // 견적서 id
+                        key2 : JSON.stringify(item.proposalId) // 입찰서 id
+                    },
+                    notification: {
+                        title : 'COFFEE JJIM',
+                        icon : 'ic-launcher',
+                        body : '죄송합니다. 카페가 유찰되었습니다.'
+                    }
+                });
+                // 유찰 카페에게 보낼 샌더
+                var senderToNoBidCafe = new fcm.Sender(process.env.FCM_KEY);
+                // 유찰 카페들에게 send
+                var regiTokens = [];
+                regiTokens.push(item.fcmToken);
+                senderToNoBidCafe.send(messageToNoBidCafe, {registrationTokens: regiTokens}, function(err, response) {
+                    if (err) {
+                        callback(err);
+                    } else {
+                        logger.log('debug', 'send to no bid cafe response : &j', response, {});
+                        callback(null);
+                    }
+                });
+            }, function(err) {
                 if (err) {
                     logger.log('debug', 'send to no bid cafe err : &j', err, {});
+                } else {
+                    res.send({
+                        code : 1,
+                        message : '예약 완료'
+                    });
+                    logger.log('debug', '-------------- cafe reservation completed --------------');
                 }
-                res.send({
-                    code : 1,
-                    message : '예약 완료'
-                });
-                logger.log('debug', 'send to no bid cafe response : &j', response, {});
-                logger.log('debug', 'send to no bid cafe completed');
-                logger.log('debug', '-------------- cafe reservation completed --------------');
             });
         });
     });

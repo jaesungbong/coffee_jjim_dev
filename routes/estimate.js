@@ -37,19 +37,6 @@ router.post('/', isAuthenticated, function(req, res, next) {
         }
         // 견적서가 도착할 카페들에게 보낼 메세지
         var messageToCafe = new fcm.Message({
-            data: {
-                // key1 : JSON.stringify(result.estimateId), //견적서 id
-                // key2 : JSON.stringify(result.nickname), //고객 닉네임
-                // key3 : JSON.stringify(result.auctionStartTime), // 경매 시작 날짜 시간
-                // key4 : JSON.stringify(result.deadlineTime), //마감 날짜 시간
-                // key5 : JSON.stringify(result.reservationTime), //예약 날짜 시간
-                // key6 : JSON.stringify(result.people), // 인원
-                // key7 : JSON.stringify(result.wifi), //와이파이
-                // key8 : JSON.stringify(result.days), //24시간
-                // key9 : JSON.stringify(result.parking), // 주차
-                // key10 : JSON.stringify(result.socket), // 콘센트
-                // key11 : JSON.stringify(result.proposalState) //입찰 상태
-            },
             notification: {
                 title : 'COFFEE JJIM',
                 icon : 'ic-launcher',
@@ -59,9 +46,6 @@ router.post('/', isAuthenticated, function(req, res, next) {
 
         //자신에게 보낼 메세지
         var messageToMe = new fcm.Message({
-            data : {
-
-            },
             notification : {
                 title : '경매 종료',
                 icon : 'ic-launcher',

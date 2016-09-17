@@ -171,26 +171,6 @@ var UserObj = {
             }
         });
     },
-    getCustomerFcmTokenByEstimateId : function(estimateId, callback) {
-        var select_customer_fcm_token = 'SELECT u.fcm_token fcmToken ' +
-                                        'FROM estimate e JOIN customer c ON (e.customer_id = c.id) ' +
-                                        'JOIN user u ON (c.user_id = u.id) ' +
-                                        'WHERE e.id = ?';
-        dbPool.logStatus();
-        dbPool.getConnection(function(err, dbConn) {
-            if (err) {
-                return callback(err);
-            }
-            dbConn.query(select_customer_fcm_token, [estimateId], function(err, results) {
-                dbConn.release();
-                dbPool.logStatus();
-                if (err) {
-                    return callback(err);
-                }
-                callback(null, results[0].fcmToken);
-            })
-        })
-    },
 };
 
 module.exports = UserObj;

@@ -29,13 +29,9 @@ var estimateObj = {
                                   'VALUES(?, ?)';
 
         // 보내질 견적서 데이터
-        var sql_select_estimate = 'SELECT a.estimateId, a.nickname, a.auctionStartTime, a.deadlineTime, a.reservationTime, a.people, a.wifi, a.days, a.parking, a.socket, b.proposal_state proposalState, a.fcmToken ' +
-                                  'FROM(SELECT u.fcm_token fcmToken, e.id estimateId,c.nickname nickname, DATE_FORMAT(convert_tz(e.auction_start_time,\'+00:00\',\'+09:00\'), \'%Y-%m-%d %H:%i:%s\') auctionStartTime, e.people, wifi, days, parking, socket, DATE_FORMAT(convert_tz(date_add(e.auction_start_time, INTERVAL (e.auction_time) MINUTE), \'+00:00\', \'+09:00\'), \'%Y-%m-%d %H:%i:%s\') deadlineTime, DATE_FORMAT(convert_tz(e.reservation_time,\'+00:00\',\'+09:00\'), \'%Y-%m-%d %H:%i:%s\') reservationTime ' +
-                                       'FROM estimate e JOIN customer c ON(e.customer_id = c.id) ' +
-                                                       'JOIN user u ON(c.user_id = u.id) ' +
-                                       'WHERE e.id = ?) a LEFT JOIN (SELECT estimate_id ,proposal_state ' +
-                                                                    'FROM proposal ' +
-                                  'WHERE proposal_state = 0 OR proposal_state IS NULL) b ON (a.estimateId = b.estimate_id)';
+        var sql_select_fcm_token = 'SELECT fcm_token fcmToken ' +
+                                   'FROM user u JOIN customer c ON (u.id = c.user_id) ' +
+                                   'WHERE c.id = ?';
 
         dbPool.logStatus();
         dbPool.getConnection(function (err, dbConn) {
@@ -51,7 +47,7 @@ var estimateObj = {
                     dbPool.logStatus();
                     return callback(err);
                 }
-                async.series([compareTime, checkExistAuction, insertEstimate, selectDeliveryCafe, insertDelivery, getEstimateData], function(err, result) {
+                async.series([compareTime, checkExistAuction, insertEstimate, selectDeliveryCafe, insertDelivery, getCustomerFcmToken], function(err, result) {
                     if (err) {
                         return dbConn.rollback(function() {
                             dbConn.release();
@@ -172,24 +168,13 @@ var estimateObj = {
             }
 
             //견적서 정보 구하기
-            function getEstimateData(callback) {
-                dbConn.query(sql_select_estimate, [resultData.estimateId], function(err, result) {
+            function getCustomerFcmToken(callback) {
+                dbConn.query(sql_select_fcm_token, [estimateData.customerId], function(err, results) {
                     if (err) {
                         return callback(err);
                     }
-                    resultData.estimateId = result[0].estimateId;
-                    resultData.nickname = result[0].nickname;
-                    resultData.auctionStartTime = result[0].auctionStartTime;
-                    resultData.deadlineTime = result[0].deadlineTime;
-                    resultData.reservationTime = result[0].reservationTime;
-                    resultData.people = result[0].people;
-                    resultData.wifi = result[0].wifi;
-                    resultData.days = result[0].days;
-                    resultData.parking = result[0].parking;
-                    resultData.socket = result[0].socket;
-                    resultData.proposalState = result[0].proposalState;
                     resultData.myToken = [];
-                    resultData.myToken.push(result[0].fcmToken);
+                    resultData.myToken.push(results[0].fcmToken);
                     callback(null);
                 });
             }
