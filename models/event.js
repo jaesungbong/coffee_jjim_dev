@@ -6,7 +6,7 @@ var path = require('path');
 
 var eventObj = {
     getEvents : function(callback) {
-        var sql_get_events = 'SELECT a.cafe_id id, a.image_name thumbnailUrl, b.image_name imageUrl ' +
+        var sql_get_events = 'SELECT a.cafe_id cafeId, a.image_name thumbnailUrl, b.image_name imageUrl ' +
             'FROM(SELECT id, cafe_id, type, image_name, start_date, end_date ' +
                  'FROM event ' +
                  'WHERE type = 0) a JOIN (SELECT id, cafe_id, type, image_name ' +

@@ -272,7 +272,7 @@ var CafeObj = {
     },
     getCafeInfo : function(cafeId, callback) {
         // 이미지를 제외한 카페들의 정보를 가져오는 sql
-        var sql_select_cafe = 'SELECT id id, cafe_name cafeName, cafe_address cafeAddress, cafe_phone_number cafePhoneNumber, business_hour businessHour, wifi, days, parking, socket, y(location) latitude, x(location) longitude ' +
+        var sql_select_cafe = 'SELECT id cafeId, cafe_name cafeName, cafe_address cafeAddress, cafe_phone_number cafePhoneNumber, business_hour businessHour, wifi, days, parking, socket, y(location) latitude, x(location) longitude ' +
                               'FROM cafe ' +
                               'WHERE id = ?';
 
@@ -335,7 +335,7 @@ var CafeObj = {
     },
     getAllCafe : function(reqData, callback) {
         //모든 카페 정보들과 각 카페의 대표 이미지를 거리순으로 뽑는 sql
-        var sql_select_cafe = 'SELECT c.id id, c.cafe_name cafeName, c.cafe_address cafeAddress, c.wifi, c.days, c.parking, c.socket, y(location) latitude, x(location) longitude, i.image_name imageUrl, ' +
+        var sql_select_cafe = 'SELECT c.id cafeId, c.cafe_name cafeName, c.cafe_address cafeAddress, c.wifi, c.days, c.parking, c.socket, y(location) latitude, x(location) longitude, i.image_name imageUrl, ' +
                                     'round(6371 * acos(cos(radians(?)) * cos(radians(y(location))) * cos(radians(x(location)) - radians(?)) + sin(radians(?)) * sin(radians(y(location)))), 2) AS distance ' +
                               'FROM cafe c LEFT JOIN (SELECT * ' +
                                                      'FROM image ' +
@@ -366,7 +366,7 @@ var CafeObj = {
     },
     getKeyWordCafe : function(reqData, callback){
         //키워드로 검색된 카페 정보들과 각 카페의 대표 이미지를 거리순으로 뽑는 sql
-        var sql_select_cafes = 'SELECT c.id id, c.cafe_name cafeName, c.cafe_address cafeAddress, c.wifi, c.days, c.parking, c.socket, y(location) latitude, x(location) longitude, i.image_name imageUrl, ' +
+        var sql_select_cafes = 'SELECT c.id cafeId, c.cafe_name cafeName, c.cafe_address cafeAddress, c.wifi, c.days, c.parking, c.socket, y(location) latitude, x(location) longitude, i.image_name imageUrl, ' +
                                        'round(6371 * acos(cos(radians(?)) * cos(radians(y(location))) * cos(radians(x(location)) - radians(?)) + sin(radians(?)) * sin(radians(y(location)))), 2) AS distance ' +
                                'FROM cafe c LEFT JOIN (SELECT * ' +
                                                       'FROM image ' +
@@ -397,7 +397,7 @@ var CafeObj = {
         })
     },
     getBest5Cafe : function(callback) {
-        var sql_select_best5_cafe = 'SELECT c.id id, i.image_name imageUrl ' +
+        var sql_select_best5_cafe = 'SELECT c.id cafeId, i.image_name imageUrl ' +
                                     'FROM bookmark b JOIN cafe c ON (c.id = b.cafe_id) ' +
                                                     'JOIN image i ON (c.id = i.cafe_id) ' +
                                     'WHERE i.sequence = 1 ' +
@@ -425,7 +425,7 @@ var CafeObj = {
         })
     },
     getNewCafe : function(callback) {
-        var sql_select_new_cafe = 'SELECT DISTINCT c.id id, i.image_name imageUrl ' +
+        var sql_select_new_cafe = 'SELECT DISTINCT c.id cafeId, i.image_name imageUrl ' +
                                   'FROM user u JOIN cafe c ON (u.id = c.user_id) ' +
                                               'JOIN image i ON (i.cafe_id = c.id) ' +
                                   'WHERE SUBDATE(now(), INTERVAL 30 DAY) < reg_date ' +

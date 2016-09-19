@@ -59,13 +59,36 @@ var bookmarkObj = {
             if (err) {
                 return callback(err);
             }
-            dbConn.query(sql_delete_bookmark, [reqData.customerId, reqData.id], function(err, results) {
+            dbConn.query(sql_delete_bookmark, [reqData.customerId, reqData.cafeId], function(err, results) {
                 dbConn.release();
                 dbPool.logStatus();
                 if (err) {
                     return callback(err);
                 }
                 callback(null);
+            });
+        });
+    },
+    getIsBookMarked : function(reqData, callback) {
+        var sql_select_bookmark = 'SELECT * FROM bookmark ' +
+                                  'WHERE customer_id = ? AND cafe_id = ?';
+
+        dbPool.logStatus();
+        dbPool.getConnection(function (err, dbConn) {
+            if (err) {
+                return callback(err);
+            }
+            dbConn.query(sql_select_bookmark, [reqData.customerId, reqData.cafeId], function(err, results) {
+                dbConn.release();
+                dbPool.logStatus();
+                if (err) {
+                    return callback(err);
+                }
+                if (results.length === 0) {
+                    callback(null, 2);
+                } else {
+                    callback(null, 1);
+                }
             });
         });
     }
