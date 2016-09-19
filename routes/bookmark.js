@@ -91,7 +91,7 @@ router.delete('/:cid', isAuthenticated, function(req, res, next) {
     logger.log('debug', 'range: %s', req.headers['range']);
     var reqData = {};
     reqData.customerId = req.user.id;
-    reqData.cafeId = parseInt(req.params.cid);
+    reqData.cafeId = parseInt(req.params.cid || 0);
     Bookmark.deleteCafe(reqData, function(err, result) {
         if (err) {
             return next(err);
