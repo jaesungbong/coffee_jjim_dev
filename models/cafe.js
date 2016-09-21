@@ -279,7 +279,8 @@ var CafeObj = {
         // 해당 카페의 이미지 id와 이미지 순서, 이미지 이름을 가져오는 sql
         var sql_select_image ='SELECT id imageId, sequence, image_name imageUrl ' +
                               'FROM image ' +
-                              'WHERE cafe_id = ?';
+                              'WHERE cafe_id = ? ' +
+                              'ORDER BY sequence';
         dbPool.logStatus();
         dbPool.getConnection(function(err, dbConn){
             if (err) {
@@ -487,14 +488,27 @@ var CafeObj = {
                 return callback(err);
             }
             var resultData = {};
+            dbConn.beginTransaction(function(err) {
+               if (err) {
+                   dbConn.release();
+                   dbPool.logStatus();
+                   return callback(err);
+               }
+               async.series([findEmail, updatePassword], function(err) {
+                   if (err) {
+                       dbConn.rollback(function() {
+                           dbConn.release();
+                           dbPool.logStatus();
+                           callback(err);
+                       });
+                   }
+                   dbConn.commit(function() {
+                       dbConn.release();
+                       dbPool.logStatus();
+                       callback(null, resultData);
+                   });
+               })
 
-            async.parallel([findEmail, updatePassword], function(err, result) {
-                dbConn.release();
-                dbPool.logStatus();
-                if (err) {
-                    callback(err);
-                }
-                callback(null, resultData);
             });
 
             function findEmail(callback) {
@@ -503,7 +517,7 @@ var CafeObj = {
                         callback(err);
                     }
                     if (results.length === 0) {
-                        callback(new Error('해당 메일이 없습니다.'));
+                        return callback(new Error('해당 메일이 없음'));
                     }
                     resultData.ownerLoginId = results[0].ownerLoginId;
                     callback(null);

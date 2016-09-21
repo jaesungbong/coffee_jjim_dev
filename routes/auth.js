@@ -173,5 +173,27 @@ router.get('/kakao/token', isSecure, passport.authenticate('kakao-token'), funct
     }
 });
 
+//
+router.get('/isLogined', function(req, res, next) {
+    if (req.user) {
+        if(!req.user.kakaoid) {
+            res.send({
+                code : 1,
+                message : '카페 로그인 상태입니다.',
+            })
+        } else {
+            res.send({
+                code : 2,
+                message : '고객 로그인 상태입니다.',
+            })
+        }
+    } else {
+        return res.send({
+            code : 0,
+            message: 'no 로그인'
+        });
+    }
+});
+
 
 module.exports = router;

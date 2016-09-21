@@ -206,7 +206,10 @@ router.put('/find', isSecure, function(req, res, next) {
     var ownerEmail = req.body.ownerEmail.trim();
     Cafe.findIdPassword(ownerEmail, function(err, result) {
         if (err) {
-            return next(err);
+            return res.send({
+                code : 0,
+                message : err.message
+            });
         }
         var transporter = nodemailer.createTransport({
             host: 'smtp.gmail.com',
@@ -223,8 +226,8 @@ router.put('/find', isSecure, function(req, res, next) {
             to: ownerEmail, // list of receivers
             subject: '커피찜 아이디 임시 비밀번호', // Subject line
             html: '<h1>커피찜 아이디 임시 비밀번호</h1><BR>' +
-                  '<B>아이디 : </B>' + result.ownerLoginId +'<BR>' +
-                  '<B>비밀번호 : </B>' + result.password
+            '<B>아이디 : </B>' + result.ownerLoginId +'<BR>' +
+            '<B>비밀번호 : </B>' + result.password
         };
 
         transporter.sendMail(mailOptions, function(error, info){

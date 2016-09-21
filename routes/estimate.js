@@ -37,6 +37,9 @@ router.post('/', isAuthenticated, function(req, res, next) {
         }
         // 견적서가 도착할 카페들에게 보낼 메세지
         var messageToCafe = new fcm.Message({
+            data : {
+                key1 : 1
+            },
             notification: {
                 title : 'COFFEE JJIM',
                 icon : 'ic-launcher',
@@ -46,6 +49,9 @@ router.post('/', isAuthenticated, function(req, res, next) {
 
         //자신에게 보낼 메세지
         var messageToMe = new fcm.Message({
+            data : {
+                key1 : 2
+            },
             notification : {
                 title : '경매 종료',
                 icon : 'ic-launcher',

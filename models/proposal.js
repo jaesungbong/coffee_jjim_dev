@@ -85,7 +85,7 @@ var objProposal = {
     // 입찰서 카페 목록
     getProposalList : function(reqData, callback) {
         var sql_select_proposal_list = 'SELECT p.id proposalId, ' +
-                                              'p.cafe_id id, ' +
+                                              'p.cafe_id cafeId, ' +
                                               'c.cafe_name cafeName, ' +
                                               'i.image_name imageUrl, ' +
                                               'c.cafe_address cafeAddress, ' +

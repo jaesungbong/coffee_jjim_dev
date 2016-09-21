@@ -27,6 +27,9 @@ router.post('/', isAuthenticated, function(req, res, next) {
             });
         }
         var messageToCustomer = new fcm.Message({
+            data : {
+                key1 : 3
+            },
             notification: {
                 title : 'COFFEE JJIM',
                 icon : 'ic-launcher',
@@ -97,8 +100,9 @@ router.put('/:pid', isAuthenticated, function(req, res, next) {
         // 날찰 카페에게 보낼 메세지
         var messageToBidCafe = new fcm.Message({
             data: {
-                key1 : JSON.stringify(result.estimateId), // 견적서 id
-                key2 : JSON.stringify(reqData.proposalId) // 입찰서 id
+                key1 : 4,
+                key2 : JSON.stringify(result.estimateId), // 견적서 id
+                key3 : JSON.stringify(reqData.proposalId), // 입찰서 id
             },
             notification: {
                 title : 'COFFEE JJIM',
@@ -121,8 +125,9 @@ router.put('/:pid', isAuthenticated, function(req, res, next) {
                 // 유찰 카페에게 보낼 메세지
                 var messageToNoBidCafe = new fcm.Message({
                     data: {
-                        key1 : JSON.stringify(result.estimateId), // 견적서 id
-                        key2 : JSON.stringify(item.proposalId) // 입찰서 id
+                        key1 : 5,
+                        key2 : JSON.stringify(result.estimateId), // 견적서 id
+                        key3 : JSON.stringify(item.proposalId) // 입찰서 id
                     },
                     notification: {
                         title : 'COFFEE JJIM',
